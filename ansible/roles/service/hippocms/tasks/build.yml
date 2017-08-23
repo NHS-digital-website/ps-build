@@ -1,0 +1,112 @@
+---
+
+- name: Ensure Tomcat base directories
+  become: yes
+  file:
+    group: "{{ hippocms.user }}"
+    mode: u=rwx
+    name: "/home/{{ hippocms.user }}/{{ item }}"
+    owner: "{{ hippocms.user }}"
+    state: directory
+  with_items:
+    - tomcat-endorsed
+    - heapdumps
+
+- name: "download Tomcat {{ hippocms.tomcat.version }} release"
+  get_url:
+    dest: "/tmp/apache-tomcat-{{ hippocms.tomcat.version }}.tar.gz"
+    url: "http://artfiles.org/apache.org/tomcat/tomcat-8/v{{ hippocms.tomcat.version }}/bin/apache-tomcat-{{ hippocms.tomcat.version }}.tar.gz"
+
+- name: "Unpack Tomcat {{ hippocms.tomcat.version }} release"
+  become: yes
+  unarchive:
+    dest: "/home/{{ hippocms.user }}/"
+    group: "{{ hippocms.user }}"
+    owner: "{{ hippocms.user }}"
+    remote_src: yes
+    src: "/tmp/apache-tomcat-{{ hippocms.tomcat.version }}.tar.gz"
+
+- name: Symlink Tomcat
+  become: yes
+  file:
+    dest: "/home/{{ hippocms.user }}/tomcat"
+    group: "{{ hippocms.user }}"
+    owner: "{{ hippocms.user }}"
+    src: "/home/{{ hippocms.user }}/apache-tomcat-{{ hippocms.tomcat.version }}"
+    state: link
+
+- name: Download Hippocms dependencies jars
+  become: yes
+  get_url:
+    url: "{{ item }}"
+    dest: "/home/{{ hippocms.user }}/tomcat-endorsed/"
+  with_items:
+    - http://search.maven.org/remotecontent?filepath=javax/jcr/jcr/2.0/jcr-2.0.jar
+    - http://search.maven.org/remotecontent?filepath=javax/mail/mail/1.4.7/mail-1.4.7.jar
+    - http://search.maven.org/remotecontent?filepath=mysql/mysql-connector-java/5.1.36/mysql-connector-java-5.1.36.jar
+    - http://search.maven.org/remotecontent?filepath=org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.1/geronimo-jta_1.1_spec-1.1.jar
+
+- name: Allow acess to RMI
+  become: yes
+  blockinfile:
+    dest: "/home/{{ hippocms.user }}/tomcat/conf/catalina.policy"
+    block: |
+      grant codeBase "jar:file:${catalina.home}/webapps/" {
+        permission java.net.SocketPermission "*:1099", "connect, accept, listen";
+      };
+
+- name: Ensure shared loader paths
+  become: yes
+  lineinfile:
+    dest: "/home/{{ hippocms.user }}/tomcat/conf/catalina.properties"
+    line: shared.loader=${catalina.base}/shared/lib,${catalina.base}/shared/lib/*.jar
+    regexp: "^shared.loader="
+    # line: shared.loader=${catalina.base}/shared/lib,/opt/tomcat-endorsed
+
+- name: copy config
+  become: yes
+  template:
+    dest: "/home/{{ hippocms.user }}/tomcat/{{ item }}"
+    group: "{{ hippocms.user }}"
+    owner: "{{ hippocms.user }}"
+    src: "{{ item }}.j2"
+    mode: u=rw
+  with_items:
+    - conf/context.xml
+    - conf/log4j.xml
+    - conf/repository.xml
+
+- name: copy bin wrappers
+  become: yes
+  copy:
+    dest: "/home/{{ hippocms.user }}/tomcat/{{ item }}"
+    group: "{{ hippocms.user }}"
+    owner: "{{ hippocms.user }}"
+    src: "{{ item }}"
+    mode: u=rwx
+  with_items:
+    - bin/shutdown_wrapper.sh
+    - bin/startup_wrapper.sh
+
+- name: Create setenv file
+  become: yes
+  template:
+    dest: "/home/{{ hippocms.user }}/tomcat/bin/setenv.sh"
+    group: "{{ hippocms.user }}"
+    mode: u=rwx
+    owner: "{{ hippocms.user }}"
+    src: bin/setenv.sh.j2
+
+- name: Create Systemd service
+  become: yes
+  template:
+    dest: "/etc/systemd/system/{{ hippocms.user }}.service"
+    mode: u=rw,g=r,o=r
+    src: systemd/hippocms.service.j2
+
+- name: Register service
+  service:
+    enabled: no
+    name: "{{ hippocms.user }}"
+
+- include: deploy_vagrant.yml

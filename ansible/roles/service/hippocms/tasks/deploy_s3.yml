@@ -1,0 +1,15 @@
+---
+
+# - name: Download hippocms from S3
+
+- name: Unarchive hippocms
+  become: yes
+  unarchive:
+    remote_src: yes
+    src: /tmp/hippocms-{{ hippocms.version }}.tgz
+    dest: "/home/{{ hippocms.user }}/tomcat"
+    extra_opts:
+      - webapps
+      - shared
+    user: "{{ hippocms.user }}"
+    group: "{{ hippocms.user }}"

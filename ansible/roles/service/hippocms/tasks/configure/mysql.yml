@@ -1,0 +1,17 @@
+---
+
+- name: Ensure hippocms user
+  mysql_user:
+    login_user: "{{ hippocms.mysql.root_user }}"
+    login_password: "{{ hippocms.mysql.root_password }}"
+    name: "{{ hippocms.mysql.user }}"
+    password: "{{ hippocms.mysql.password }}"
+    priv: "{{ hippocms.mysql.dbname }}.*:ALL"
+    state: present
+
+- name: Ensure hippocms database
+  mysql_db:
+    login_user: "{{ hippocms.mysql.root_user }}"
+    login_password: "{{ hippocms.mysql.root_password }}"
+    name: "{{ hippocms.mysql.dbname }}"
+    state: present

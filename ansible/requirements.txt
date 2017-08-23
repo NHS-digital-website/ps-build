@@ -1,0 +1,10 @@
+ansible==2.2.2.0
+ansible-lint==3.*
+awscli==1.11.138
+boto
+boto3==1.4.2
+shyaml==0.4.*
+netaddr==0.7.*
+vagrant-metadata>=1.1.0
+aws-sudo
+pep8
