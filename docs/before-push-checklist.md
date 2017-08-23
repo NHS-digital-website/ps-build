@@ -19,4 +19,4 @@ Pull Request.
 If in your PR you're adding new role, make sure to run:
 
 * `make ami_debug ROLE=...`
-* `make vagrant ROLE=...`
+* `make vagrant.destory vagrant ROLE=...`

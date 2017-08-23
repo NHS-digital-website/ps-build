@@ -1,0 +1,13 @@
+---
+
+- role: sansible.java
+  version: v1.0
+
+- role: sansible.mysql
+  version: v1.0
+
+- role: sansible.nginx
+  version: v1.1
+
+- role: sansible.users_and_groups
+  version: v1.4

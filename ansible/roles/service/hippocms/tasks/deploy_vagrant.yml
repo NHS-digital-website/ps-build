@@ -1,0 +1,11 @@
+---
+
+- name: Unarchive hippocms
+  become: yes
+  unarchive:
+    remote_src: yes
+    src: /vagrant/.artefacts/hippocms-vanilla.tgz
+    dest: "/home/{{ hippocms.user }}/tomcat"
+    extra_opts:
+      - webapps
+      - shared

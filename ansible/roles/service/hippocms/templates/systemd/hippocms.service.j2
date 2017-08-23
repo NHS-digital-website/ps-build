@@ -1,0 +1,16 @@
+[Unit]
+Description=Hippo CMS Server
+After=network.target
+
+[Service]
+Type=forking
+
+Restart=on-failure
+ExecStart=/home/{{ hippocms.user }}/tomcat/bin/startup_wrapper.sh
+ExecStop=/home/{{ hippocms.user }}s/tomcat/bin/shutdown_wrapper.sh
+
+User={{ hippocms.user }}
+Group={{ hippocms.user }}
+
+[Install]
+WantedBy=multi-user.target

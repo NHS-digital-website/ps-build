@@ -1,0 +1,20 @@
+---
+
+hippocms:
+  user: hippocms
+  domains:
+    site: hippocms
+    cms: cms.hippocms
+
+  java:
+    version: 8
+
+  mysql:
+    root_user: root
+    root_password: changeme!
+    user: hippocms
+    password: changeme!hippocms
+    dbname: hippocms
+
+  tomcat:
+    version: "8.0.46"

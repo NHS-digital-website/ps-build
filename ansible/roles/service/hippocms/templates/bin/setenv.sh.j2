@@ -1,0 +1,23 @@
+JAVA_HOME=/usr/lib/jvm/java-8-oracle
+JAVA_ENDORSED_DIRS=/home/{{ hippocms.user }}/tomcat-endorsed
+
+CATALINA_HOME="/home/{{ hippocms.user }}/tomcat"
+CATALINA_BASE="/home/{{ hippocms.user }}/tomcat"
+CATALINA_PID="${CATALINA_BASE}/work/catalina.pid"
+
+CLUSTER_ID="$(whoami)-$(hostname -f)"
+
+MAX_HEAP=512
+MIN_HEAP=256
+
+REP_OPTS="-Drepo.bootstrap=false -Drepo.config=file:${CATALINA_BASE}/conf/repository.xml"
+JVM_OPTS="-server -Xmx${MAX_HEAP}m -Xms${MIN_HEAP}m -XX:+UseG1GC -Djava.util.Arrays.useLegacyMergeSort=true"
+DMP_OPTS="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/{{ hippocms.user }}/heapdumps"
+RMI_OPTS="-Djava.rmi.server.hostname=127.0.0.1"
+JRC_OPTS="-Dorg.apache.jackrabbit.core.cluster.node_id=${CLUSTER_ID}"
+L4J_OPTS="-Dlog4j.configuration=file:${CATALINA_BASE}/conf/log4j.xml"
+VGC_OPTS="-verbosegc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${CATALINA_BASE}/logs/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=2048k"
+
+CATALINA_OPTS="${JVM_OPTS} ${VGC_OPTS} ${REP_OPTS} ${DMP_OPTS} ${RMI_OPTS} ${L4J_OPTS} ${JRC_OPTS}"
+
+export JAVA_HOME CATALINA_HOME CATALINA_BASE
