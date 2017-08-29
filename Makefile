@@ -22,12 +22,15 @@ help:
 		 /:/   { sub(/:.*/, "", $$0); printf "\033[34m%-30s\033[0m\033[1m%s\033[0m %s\n\n", $$0, doc_h, doc; skip=1 }' \
 		$(MAKEFILE_LIST)
 
+## Initialise local project
+init: .git/.local-hooks-installed $(VENV)
+
 ## Lint all the code
 # Usage: make lint
 lint: lint.ansible
 
 ## Lint Ansible roles and playbooks
-lint.ansible:
+lint.ansible: $(VENV)
 	@echo "Ansible Roles Lint..."
 	@find ansible/roles/service -name "*.yml" -not -path "*/files/*.yml" -print0 | \
 	xargs -n1 -0 -I% \
@@ -91,3 +94,7 @@ clean:
 # generates empty .mk file if not present
 .mk:
 	touch .mk
+
+# install hooks and local git config
+.git/.local-hooks-installed:
+	@bash .git-local/install
