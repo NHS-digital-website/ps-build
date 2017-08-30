@@ -1,4 +1,12 @@
 
+base_image:
+  # Vagrant specific
+  vm:
+    cores: 1
+    memory: 512
+    priv_ip: 192.168.50.11
+    hosts: [ ]
+
 hippocms:
   # Vagrant specific
   vm:
@@ -6,18 +14,10 @@ hippocms:
     memory: 2048
     priv_ip: 192.168.50.10
     hosts:
-      - hippocms.nhsd-rps.int
-      - cms.hippocms.nhsd-rps.int
+      - hippocms.nhsd-ps.int
+      - cms.hippocms.nhsd-ps.int
 
   # Ansible role specific
   domains:
-    site: hippocms.nhsd-rps.int
-    cms: cms.hippocms.nhsd-rps.int
-
-cpan:
-  vm:
-    cores: 1
-    memory: 1024
-    priv_ip: 192.168.50.11
-    hosts:
-      - cpan.nhsd-rps.int
+    site: hippocms.nhsd-ps.int
+    cms: cms.hippocms.nhsd-ps.int

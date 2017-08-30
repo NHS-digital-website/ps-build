@@ -1,0 +1,3 @@
+
+- name: Ensure Hippo CMS environment
+  hosts: "{{ hosts }}"

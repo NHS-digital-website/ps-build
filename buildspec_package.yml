@@ -1,0 +1,21 @@
+---
+##
+# AWS Code Build spec for packaging this repo
+#
+
+version: 0.1
+
+phases:
+  install:
+    commands:
+      # give me my ".git" folder back (and correct file permissions), please!
+      - git clone https://github.com/NHS-digital-website/ps-build.git ../tmp-src
+      - cd ../tmp-src && git checkout ${CODEBUILD_RESOLVED_SOURCE_VERSION:-$CODEBUILD_SOURCE_VERSION}
+      - ROOT_NAME=$(basename $(pwd)) && cd .. && cp -R tmp-src/. ${ROOT_NAME}
+  build:
+    commands:
+      - make .venv ansible/roles/vendor
+
+artifacts:
+  files:
+    - "**/*"

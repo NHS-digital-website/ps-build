@@ -57,6 +57,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |m_config|
 					'root_dir' => "#{rootDir}/ansible"
 				}.merge(cfg)
 				ansible.tags = run['tags']
+				ansible.raw_arguments = [
+					"-e@#{rootDir}/ansible/vars/environment.yml"
+				]
 				ansible.verbose = "#{ENV['VERBOSE']}" if ENV['VERBOSE']
 			end
 		end

@@ -9,5 +9,11 @@
 - role: sansible.nginx
   version: v1.1
 
+- role: sansible.ntp
+  verison: v1.0
+
+- role: sansible.security_hardening
+  version: v1.0
+
 - role: sansible.users_and_groups
   version: v1.4

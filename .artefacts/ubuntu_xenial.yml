@@ -1,0 +1,11 @@
+##
+# Ubuntu Xenial AMI data
+#
+# do not delete that file
+ubuntu_xenial:
+  version: v0.0.0
+  ami:
+    id: ami-da28dfa3
+    name: xenial_server_release_20170803
+    source_id:
+    source_version: v0.0.0

@@ -13,8 +13,8 @@
 
 ## Build, etc
 *.log
-/.artefacts
 /.mk
 /.vagrant
 /.venv
 /vagrant/config_override.yml
+/vendor

@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+
+import boto3
+import botocore
+import os
+import re
+import sys
+import yaml
+import time
+import dateutil.parser
+from distutils.version import LooseVersion
+
+
+def create_artifact(role):
+	artifacts_folder = os.path.abspath(os.path.dirname(__file__) + '/../.artifacts')
+	artifact_filename = artifacts_folder + '/' + role + '.yml'
+	artifact_config = {
+		role: {
+			'version': 'v0.0.0',
+			'ami': {
+				'id': '',
+				'name': '',
+				'source_id': '',
+				'source_version': 'v0.0.0'
+			}
+		}
+	}
+	config = get_config()
+	# infrastructure roles (inf_*) should look up the build role name (without the
+	# inf_ prefix)
+	# artifact_filename uses the original role name with inf_ (if present)
+	lookup_role = re.sub(r'^(?:inf_)(.*)', r'\1', role)
+
+	# set role facts
+	role_ami = find_latest_ami(lookup_role)
+	artifact_config[role]['ami']['id'] = role_ami['id']
+	artifact_config[role]['ami']['name'] = role_ami['name']
+	artifact_config[role]['version'] = role_ami['version']
+
+	# set parent image facts
+	role_ami_config = config['aws']['ami'][lookup_role]
+	if 'id' in config['aws']['ami'][role_ami_config['parent']]:
+		artifact_config[role]['ami']['source_id'] = \
+			config['aws']['ami'][role_ami_config['parent']]['id']
+	else:
+		parent_ami_data = find_latest_ami(role_ami_config['parent'])
+		artifact_config[role]['ami']['source_id'] = parent_ami_data['id']
+		artifact_config[role]['ami']['source_version'] = parent_ami_data['version']
+
+	# Save artifact
+	with open(artifact_filename, 'w+') as artifact_file:
+		yaml.dump(
+			artifact_config,
+			artifact_file,
+			explicit_start=True,
+			indent=2,
+			default_flow_style=False
+		)
+
+
+def find_latest_ami(role):
+	ami_data = {
+		'id': '',
+		'version': ''
+	}
+	ec2_client = boto3.client('ec2')
+
+	images = ec2_client.describe_images(
+		Owners=['self'],
+		Filters=[
+			{
+				'Name': 'name',
+				'Values': [role + '-v*']
+			},
+			{
+				'Name': 'state',
+				'Values': ['available']
+			}
+		]
+	)
+
+	images_list = []
+
+	for image in images['Images']:
+		image_data = {
+			'id': image['ImageId'],
+			'name': image['Name'],
+			'tags': image['Tags'],
+			'creationTimestamp': time.mktime(dateutil.parser.parse(
+				image['CreationDate']).timetuple()
+			)
+		}
+
+		for tag in image['Tags']:
+			if tag['Key'] == 'Version':
+				image_data['version'] = tag['Value']
+
+		images_list.append(image_data)
+
+	images_list.sort(key=lambda x: (LooseVersion(x['version'])), reverse=True)
+
+	ami_data['id'] = images_list[0]['id']
+	ami_data['name'] = images_list[0]['name']
+	ami_data['version'] = images_list[0]['version']
+
+	return ami_data
+
+
+def get_config():
+	config_filename = os.path.abspath(
+		os.path.dirname(__file__) + '/../.build.yml'
+	)
+	config = {}
+
+	if os.path.exists(config_filename):
+		with open(config_filename, 'r') as config_file:
+			try:
+				config = yaml.load(config_file)
+			except yaml.YAMLError as exc:
+				print >> std.err, exc
+
+	return config
+
+
+if __name__ == '__main__':
+	role = re.sub(
+		r'(.*?)(\.yml)?$',
+		r'\1',
+		os.path.basename(sys.argv[1])
+	)
+
+	create_artifact(role)
