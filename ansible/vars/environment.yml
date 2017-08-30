@@ -1,0 +1,25 @@
+---
+
+base_image:
+  groups:
+    - name: power_users
+    - name: users
+  users:
+    - name: graham.dodsworth
+      groups:
+        - users
+      ssh_key: "{{ root_dir }}/files/ssh_keys/graham.dodsworth.pub"
+    - name: ivor.caldwell
+      groups:
+        - users
+        - power_users
+      ssh_key: "{{ root_dir }}/files/ssh_keys/ivor.caldwell.pub"
+    - name: steve.anderson
+      groups:
+        - users
+      ssh_key: "{{ root_dir }}/files/ssh_keys/steve.anderson.pub"
+    - name: wojtek.oledzki
+      groups:
+        - power_users
+        - users
+      ssh_key: "{{ root_dir }}/files/ssh_keys/wojtek.oledzki.pub"

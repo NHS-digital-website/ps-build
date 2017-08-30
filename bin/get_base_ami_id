@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+
+##
+# Return base AMI ID for given role name
+#
+#
+
+import boto3
+import botocore
+import os
+import re
+import sys
+import yaml
+import time
+import dateutil.parser
+from distutils.version import LooseVersion
+
+
+def print_base_image_id(role):
+	base_ami_id = get_base_ami_id(role, get_config())
+	print base_ami_id
+
+
+def get_base_ami_id(role, config):
+	base_ami_id = None
+	ami_config = {}
+
+	if 'id' in config['aws']['ami'][role]:
+		return config['aws']['ami'][role]['id']
+	else:
+		parent = config['aws']['ami'][role]['parent']
+		ami_config = get_ami_artefact(parent)
+		return ami_config[parent]['ami']['id']
+
+
+def get_ami_artefact(role):
+	artefact_filename = os.path.abspath(
+		os.path.dirname(__file__) + '/../.artefacts/' + role + '.yml'
+	)
+
+	return load_yaml(artefact_filename)
+
+
+def get_config():
+	config_filename = os.path.abspath(
+		os.path.dirname(__file__) + '/../.aws.yml'
+	)
+
+	return load_yaml(config_filename)
+
+
+def load_yaml(filename):
+	yaml_hash = {}
+
+	if os.path.exists(filename):
+		with open(filename, 'r') as yml_file:
+			try:
+				yaml_hash = yaml.load(yml_file)
+			except yaml.YAMLError as exc:
+				print >> std.err, exc
+
+	return yaml_hash
+
+
+if __name__ == '__main__':
+	print_base_image_id(sys.argv[1])

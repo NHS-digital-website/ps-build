@@ -1,0 +1,77 @@
+{
+	"variables": {
+		"ansible_config": "{{ env `ANSIBLE_CONFIG` }}",
+		"build_version": "",
+		"aws_instance_type": "",
+		"aws_region": "",
+		"aws_subnet_id": "",
+		"aws_vpc_id": "",
+		"base_ami_id": "",
+		"build_name": "",
+		"disable_stop_instance": "false",
+		"role": "",
+		"root_dir": "",
+		"ssh_keypair_name": "",
+		"ssh_agent_auth": "false"
+	},
+	"builders": [ {
+		"ami_name": "{{ user `role` }}-{{ user `build_version` }}-{{ user `build_name` }}",
+		"associate_public_ip_address": true,
+		"disable_stop_instance": "{{ user `disable_stop_instance` }}",
+		"force_deregister": true,
+		"instance_type": "{{ user `aws_instance_type` }}",
+		"region": "{{ user `aws_region` }}",
+		"source_ami": "{{ user `base_ami_id` }}",
+		"ssh_username": "ubuntu",
+		"ssh_keypair_name": "{{ user `ssh_keypair_name` }}",
+		"ssh_agent_auth": "{{ user `ssh_agent_auth` }}",
+		"subnet_id": "{{ user `aws_subnet_id` }}",
+		"type": "amazon-ebs",
+		"run_tags": {
+			"build_repo_version": "{{ user `build_repo_version` }}",
+			"Name": "ami-builder-{{ user `role` }}-{{ user `build_version` }}-{{ user `build_name` }}",
+			"Role": "{{ user `role` }}",
+			"Version": "{{ user `build_version` }}"
+		},
+		"tags": {
+			"BaseImageId": "{{ user `base_ami_id` }}",
+			"Name": "{{ user `role` }}-{{ user `build_version` }}-{{ user `build_name` }}",
+			"Role": "{{ user `role` }}",
+			"Version": "{{ user `build_version` }}"
+		},
+		"vpc_id": "{{ user `aws_vpc_id` }}"
+	} ],
+	"provisioners": [
+		{
+			"execute_command": "{{.Vars}} sudo -S -E bash '{{.Path}}'",
+			"script": "packer/ami/scripts/preprovision.sh",
+			"type": "shell"
+		},
+		{
+			"playbook_file": "./ansible/playbooks/ami.yml",
+			"type": "ansible",
+			"user": "ubuntu",
+			"ansible_env_vars": [
+				"ANSIBLE_CONFIG={{ user `ansible_config` }}",
+				"PYTHONUNBUFFERED=1"
+			],
+			"extra_arguments": [
+				"--extra-vars", "hosts=all",
+				"--extra-vars", "role={{ user `role` }}",
+				"--extra-vars", "root_dir={{ user `root_dir` }}",
+				"--tags", "build"
+			]
+		}
+	],
+	"post-processors": [
+		{
+			"type": "manifest",
+			"output": "manifest.json",
+			"strip_path": true
+		},
+		{
+			"type": "shell-local",
+			"inline": [ "packer_manifest_to_build_yml manifest.json" ]
+		}
+	]
+}

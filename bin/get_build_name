@@ -1,0 +1,51 @@
+#!/bin/bash
+
+##
+# Outputs build name based on:
+# * non-empty "build name" passed to this script
+# * "CODEBUILD_BUILD_ID" environment variable - first 8 characters
+# * "GO_PIPELINE_COUNTER" environment variable
+
+function main {
+	local build_name=$1
+
+	if [ -n "${build_name}" ]; then
+		echo "${build_name}"
+		exit 0
+	fi
+
+	check_if_concourse
+	check_if_codebuild
+	check_if_gocd
+
+	echo "$(date +%Y.%m.%d)-$(head -c 80 /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c 7)"
+}
+
+function check_if_concourse {
+	if [ ! -n "${BUILD_ID}" ]; then
+		return
+	fi
+
+	echo "${BUILD_ID}"
+	exit 0
+}
+
+function check_if_codebuild {
+	if [ ! -n "${CODEBUILD_BUILD_ID}" ]; then
+		return
+	fi
+
+	echo "${CODEBUILD_BUILD_ID}" | sed 's/.*://' | head -c8
+	exit 0
+}
+
+function check_if_gocd {
+	if [ ! -n "${GO_PIPELINE_COUNTER}" ]; then
+		return
+	fi
+
+	echo "${GO_PIPELINE_COUNTER}"
+	exit 0
+}
+
+main "$@"

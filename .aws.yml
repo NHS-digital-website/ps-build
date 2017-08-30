@@ -1,0 +1,10 @@
+---
+
+aws:
+  ami:
+    ubuntu_xenial:
+      id: ami-da28dfa3
+    base_image:
+      parent: ubuntu_xenial
+    bastion:
+      parent: base_image

@@ -1,0 +1,29 @@
+---
+
+- name: Gather facts
+  action: ec2_facts
+
+- name: Update Public DNS entry
+  route53:
+    command: create
+    hosted_zone_id: "{{ bastion.aws.hosted_zone_id }}"
+    overwrite: yes
+    record: "{{ bastion.aws.dns_record }}"
+    type: A
+    value: "{{ ansible_ec2_public_ipv4 }}"
+    zone: "{{ bastion.aws.zone }}"
+    ttl: 300
+  when: bastion.aws.hosted_zone_id
+
+- name: Update Internal DNS entry
+  route53:
+    command: create
+    hosted_zone_id: "{{ bastion.aws.internal_hosted_zone_id }}"
+    overwrite: yes
+    record: "{{ bastion.aws.dns_record }}"
+    private_zone: yes
+    type: A
+    value: "{{ ansible_ec2_local_ipv4 }}"
+    zone: "{{ bastion.aws.zone }}"
+    ttl: 300
+  when: bastion.aws.internal_hosted_zone_id

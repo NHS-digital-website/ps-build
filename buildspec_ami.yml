@@ -1,0 +1,28 @@
+---
+##
+# AWS Code Build spec for building AMI
+# Make sure to specify "ROLE" environment variable in your project.
+#
+
+version: 0.1
+
+environment_variables:
+  plaintext:
+    # this is used by packer
+    USER: root
+
+phases:
+  pre_build:
+    commands:
+      # Ensure tmp creds for packer
+      - mkdir "${HOME}/.aws"
+      - echo "[default]" > ${HOME}/.aws/credentials
+      - make aws-sudo PROFILE=default > "${HOME}/setenv"
+  build:
+    commands:
+      # ROLE env needs to be set on the Project level
+      - source ${HOME}/setenv; make ami
+
+artifacts:
+  files:
+    - .artefacts/*

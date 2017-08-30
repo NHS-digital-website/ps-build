@@ -11,5 +11,8 @@ branches:
     - develop
     - master
 
+install:
+  - sudo apt-get install shellcheck
+
 script:
   - make lint

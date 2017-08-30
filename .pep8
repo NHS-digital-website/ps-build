@@ -1,0 +1,4 @@
+[pep8]
+ignore = W191
+# keep it in line with .editorconfig setup
+max-line-length = 84
