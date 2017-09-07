@@ -1,0 +1,28 @@
+
+
+# cms
+server {
+
+	listen 80 default_server;
+	server_name {{ hippo_authoring.domains.cms }};
+
+	location /site {
+		proxy_set_header Host $host;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Real-IP $remote_addr;
+
+		proxy_pass http://localhost:8080/site/;
+	}
+
+	location / {
+		proxy_set_header Host $host;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Real-IP $remote_addr;
+
+		proxy_cookie_path /cms /;
+
+		proxy_redirect http://$host/cms/ http://$host/;
+
+		proxy_pass http://localhost:8080/cms/;
+	}
+}

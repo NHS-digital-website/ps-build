@@ -1,0 +1,9 @@
+---
+
+- include: build.yml
+  tags:
+    - build
+
+- include: configure.yml
+  tags:
+    - configure
