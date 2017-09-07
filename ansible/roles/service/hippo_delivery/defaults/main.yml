@@ -1,0 +1,18 @@
+---
+
+hippo_delivery:
+  user: hippocms
+  domain: hippo_delivery
+
+  java:
+    version: 8
+
+  mysql:
+    root_user: root
+    root_password: changeme!
+    user: hippocms
+    password: changeme!hippocms
+    dbname: hippocms
+
+  tomcat:
+    version: "8.0.46"

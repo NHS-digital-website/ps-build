@@ -1,0 +1,14 @@
+---
+
+- name: Ensure Proxy config
+  become: yes
+  template:
+    src: nginx/hippo_delivery.j2
+    dest: /etc/nginx/sites-available/hippo_delivery
+
+- name: Ensure site symlink
+  become: yes
+  file:
+    state: link
+    src: /etc/nginx/sites-available/hippo_delivery
+    dest: /etc/nginx/sites-enabled/hippo_delivery

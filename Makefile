@@ -72,7 +72,23 @@ lint.ansible: $(VENV)
 	@find ansible/roles/service -name "*.yml" -not -path "*/files/*.yml" -print0 | \
 	xargs -n1 -0 -I% \
 		ansible-lint % \
-			--exclude=ansible/roles/vendor \
+			--exclude=ansible/roles/vendor
+	@echo "Ansible Syntax Check..."
+	$(MAKE) ansible.check ROLE=base_image
+	$(MAKE) ansible.check ROLE=hippo_authoring
+	$(MAKE) ansible.check ROLE=hippo_delivery
+
+## Check syntax for given ROLE
+# Usage: make ansible.check ROLE=hippo_authoring
+ansible.check: $(VENV) ansible/roles/vendor
+	ansible-playbook --syntax-check \
+		--inventory ansible/inventories/localhost \
+		--extra-vars hosts=localhost \
+		--extra-vars role=$(ROLE) \
+		--extra-vars root_dir=$(PWD)/ansible \
+		--extra-vars @$(PWD)/vagrant/config.yml \
+		$(EXTRAS) \
+		ansible/playbooks/ami.yml
 
 ## Lint Bash scripts
 lint.bash:
@@ -126,15 +142,15 @@ ami_debug: .artefacts vendor/packer vendor/jq $(VENV) ansible/roles/vendor
 
 ## Builds and `ssh` to given machine.
 # Startup and (re)provision local VM and then `ssh` to it for given ROLE.
-# Usage: make vagrant ROLE=hippocms
-#        make vagrant ROLE=hippocms MODE=configure
+# Usage: make vagrant ROLE=hippo_delivery
+#        make vagrant ROLE=hippo_delivery MODE=configure
 vagrant: $(VENV) vagrant.build .phony
 	vagrant ssh
 
 ## Builds VM (only provision)
 vagrant.build: ansible/roles/vendor
 	@printenv ROLE || ( \
-		echo "please specify ROLE, example: make vagrant ROLE=hippocms" \
+		echo "please specify ROLE, example: make vagrant ROLE=hippo_delivery" \
 		&& exit 1 \
 	)
 	vagrant up --no-provision
@@ -145,7 +161,7 @@ vagrant.build: ansible/roles/vendor
 
 ## Watch changes and rebuild local VM
 # This require `entr` (brew install entr)
-# Usage: make vagrant.watch ROLE=hippocms
+# Usage: make vagrant.watch ROLE=hippo_delivery
 vagrant.watch:
 	while sleep 1; do \
 		find ansible/ \
@@ -155,10 +171,10 @@ vagrant.watch:
 	done
 
 ## Runs simple command on a given local VM.
-# Usage: make vagrant.ssh ROLE=hippocms
-# make vagrant.status ROLE=hippocms
-#      make vagrant.halt ROLE=hippocms
-#      make vagrant.destroy ROLE=hippocms
+# Usage: make vagrant.ssh ROLE=hippo_delivery
+#        make vagrant.status ROLE=hippo_delivery
+#        make vagrant.halt ROLE=hippo_delivery
+#        make vagrant.destroy ROLE=hippo_delivery
 vagrant.%:
 	MODE=$(MODE) vagrant $(subst vagrant.,,$@)
 

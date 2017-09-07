@@ -1,3 +1,4 @@
+---
 
 base_image:
   # Vagrant specific
@@ -7,17 +8,26 @@ base_image:
     priv_ip: 192.168.50.11
     hosts: [ ]
 
-hippocms:
+hippo_authoring:
   # Vagrant specific
   vm:
     cores: 1
     memory: 2048
     priv_ip: 192.168.50.10
     hosts:
-      - hippocms.nhsd-ps.int
-      - cms.hippocms.nhsd-ps.int
+      - hippo-authoring.nhsd-ps.int
 
   # Ansible role specific
-  domains:
-    site: hippocms.nhsd-ps.int
-    cms: cms.hippocms.nhsd-ps.int
+  domain: hippo-authoring.nhsd-ps.int
+
+hippo_delivery:
+  # Vagrant specific
+  vm:
+    cores: 1
+    memory: 2048
+    priv_ip: 192.168.50.11
+    hosts:
+      - hippo-delivery.nhsd-ps.int
+
+  # Ansible role specific
+  domain: hippo-delivery.nhsd-ps.int
