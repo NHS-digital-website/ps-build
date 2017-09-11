@@ -4,7 +4,7 @@
 server {
 
 	listen 80 default_server;
-	server_name {{ hippo_authoring.domains.cms }};
+	server_name {{ hippo_authoring.domain }};
 
 	location /site {
 		proxy_set_header Host $host;

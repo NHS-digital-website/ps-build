@@ -3,8 +3,7 @@
 - name: Unarchive hippocms
   become: yes
   unarchive:
-    remote_src: yes
-    src: /vagrant/.artefacts/hippocms-vanilla.tgz
+    src: "/tmp/hippo_authoring/hippocms-current.tgz"
     dest: "/home/{{ hippo_authoring.user }}/tomcat"
     extra_opts:
       - webapps

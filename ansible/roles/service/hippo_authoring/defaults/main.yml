@@ -1,8 +1,14 @@
 ---
 
 hippo_authoring:
-  user: hippocms
+  user: hippo_authoring
   domain: hippo_authoring
+  # how to deploy / download Hippo
+  # - internal
+  # - local
+  # - s3
+  deploy_type: ~
+  manager_password: hippo
 
   java:
     version: 8

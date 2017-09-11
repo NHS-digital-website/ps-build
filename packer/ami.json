@@ -59,6 +59,7 @@
 				"--extra-vars", "hosts=all",
 				"--extra-vars", "role={{ user `role` }}",
 				"--extra-vars", "root_dir={{ user `root_dir` }}",
+				"--extra-vars", "@ansible/vars/environment.yml",
 				"--tags", "build"
 			]
 		}

@@ -7,7 +7,7 @@
 - name: Ensure Hippo CMS is running
   become: yes
   service:
-    name: hippocms
+    name: "{{ hippo_authoring.user }}"
     state: restarted
 
 - name: Wait for Hippo to wake up

@@ -1,0 +1,12 @@
+---
+
+- name: Unarchive hippocms from .artefacts/hippocms-vanilla.tgz
+  become: yes
+  unarchive:
+    dest: "/home/{{ hippo_authoring.user }}/tomcat"
+    group: "{{ hippo_authoring.user }}"
+    owner: "{{ hippo_authoring.user }}"
+    src: "{{ root_dir }}/../.artefacts/hippocms-vanilla.tgz"
+    extra_opts:
+      - webapps
+      - shared

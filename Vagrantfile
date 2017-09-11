@@ -18,6 +18,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |m_config|
 	cfg = getConfig("#{rootDir}/vagrant")
 
 	m_config.vm.define vm_name do |config|
+		config.notify_forwarder.enable = false
+
 		# TODO: change me
 		config.vm.box = "ubuntu/xenial64"
 		config.vm.box_check_update = true
@@ -42,9 +44,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |m_config|
 		end
 
 		config.vm.provision "shell" do |shell|
-			shell.inline = "apt-get update \
-			&& apt-get install python2.7 -y \
-			&& ln -fs /usr/bin/python2.7 /usr/bin/python"
+			shell.path = "vagrant/setup.sh"
 		end
 
 		build_steps = getBuildSteps(ENV['MODE'])

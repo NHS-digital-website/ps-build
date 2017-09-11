@@ -1,0 +1,142 @@
+{
+	"variables": {
+		"root_dir": "",
+		"role": ""
+	},
+	"builders": [ {
+		"type": "virtualbox-iso",
+		"boot_command": [
+			"<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+			"<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+			"<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+			"<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+			"/install/vmlinuz<wait>",
+			" auto<wait>",
+			" console-setup/ask_detect=false<wait>",
+			" console-setup/layoutcode=us<wait>",
+			" console-setup/modelcode=pc105<wait>",
+			" debconf/frontend=noninteractive<wait>",
+			" debian-installer=en_US<wait>",
+			" fb=false<wait>",
+			" initrd=/install/initrd.gz<wait>",
+			" kbd-chooser/method=us<wait>",
+			" keyboard-configuration/layout=USA<wait>",
+			" keyboard-configuration/variant=USA<wait>",
+			" locale=en_US<wait>",
+			" netcfg/get_domain=vm<wait>",
+			" netcfg/get_hostname=vagrant<wait>",
+			" grub-installer/bootdev=/dev/sda<wait>",
+			" noapic<wait>",
+			" preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+			" -- <wait>",
+			"<enter><wait>"
+		],
+		"boot_wait": "10s",
+		"disk_size": 61440,
+		"guest_os_type": "Ubuntu_64",
+		"headless": true,
+		"http_directory": "packer/vagrant/http",
+		"iso_urls": [
+			".artefacts/ubuntu-16.04.3-server-amd64.iso"
+		],
+		"iso_checksum_type": "sha256",
+		"iso_checksum": "a06cd926f5855d4f21fb4bc9978a35312f815fbda0d0ef7fdc846861f4fc4600",
+		"ssh_username": "vagrant",
+		"ssh_password": "vagrant",
+		"ssh_port": 22,
+		"ssh_wait_timeout": "10000s",
+		"shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+		"guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+		"virtualbox_version_file": ".vbox_version",
+		"vm_name": "{{ user `role` }}",
+		"vboxmanage": [
+			[
+				"modifyvm",
+				"{{.Name}}",
+				"--memory",
+				"1024"
+			],
+			[
+				"modifyvm",
+				"{{.Name}}",
+				"--cpus",
+				"1"
+			]
+		]
+	} ],
+	"provisioners": [
+		{
+			"type": "shell",
+			"execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+			"script": "packer/vagrant/scripts/setup.sh"
+		},
+		{
+			"type": "ansible",
+			"playbook_file": "./ansible/roles/service/base_image/playbook.yml",
+			"ansible_env_vars": [
+				"ANSIBLE_CONFIG={{ user `root_dir` }}/ansible/ansible.cfg",
+				"PYTHONUNBUFFERED=1"
+			],
+			"extra_arguments": [
+				"--extra-vars", "hosts=all",
+				"--extra-vars", "role=base_image",
+				"--extra-vars", "root_dir={{ user `root_dir` }}",
+				"--tags", "build"
+			]
+		},
+		{
+			"type": "ansible",
+			"playbook_file": "./ansible/roles/service/{{ user `role` }}/playbook.yml",
+			"ansible_env_vars": [
+				"ANSIBLE_CONFIG={{ user `root_dir` }}/ansible/ansible.cfg",
+				"PYTHONUNBUFFERED=1"
+			],
+			"extra_arguments": [
+				"--extra-vars", "hosts=all",
+				"--extra-vars", "role={{ user `role` }}",
+				"--extra-vars", "root_dir={{ user `root_dir` }}",
+				"--tags", "build"
+			]
+		},
+		{
+			"type": "ansible",
+			"playbook_file": "./ansible/roles/service/{{ user `role` }}/context.yml",
+			"ansible_env_vars": [
+				"ANSIBLE_CONFIG={{ user `root_dir` }}/ansible/ansible.cfg",
+				"PYTHONUNBUFFERED=1"
+			],
+			"extra_arguments": [
+				"--extra-vars", "hosts=all",
+				"--extra-vars", "role={{ user `role` }}",
+				"--extra-vars", "root_dir={{ user `root_dir` }}",
+				"--tags", "build,configure"
+			]
+		},
+		{
+			"type": "ansible",
+			"playbook_file": "./ansible/roles/service/{{ user `role` }}/playbook.yml",
+			"ansible_env_vars": [
+				"ANSIBLE_CONFIG={{ user `root_dir` }}/ansible/ansible.cfg",
+				"PYTHONUNBUFFERED=1"
+			],
+			"extra_arguments": [
+				"--extra-vars", "hosts=all",
+				"--extra-vars", "role={{ user `role` }}",
+				"--extra-vars", "root_dir={{ user `root_dir` }}",
+				"--tags", "dev_setup"
+			]
+		},
+		{
+			"type": "shell",
+			"execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+			"script": "packer/vagrant/scripts/cleanup.sh"
+		}
+	],
+	"post-processors": [
+		{
+			"output": ".artefacts/boxes/{{ user `role` }}/latest/{{.Provider}}/{{ user `role` }}.box",
+			"type": "vagrant",
+			"vagrantfile_template": "ansible/roles/service/{{ user `role` }}/Vagrantfile-tpl"
+		}
+	]
+}
