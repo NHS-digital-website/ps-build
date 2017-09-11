@@ -21,21 +21,22 @@ end
 
 def getBuildSteps(mode)
 	build_steps = [
-		{ 'play' => "playbook", 'tags' => [ "build", "download_application" ] },
-		{ 'play' => "environment", 'tags' => [ "build", "configure" ] },
-		{ 'play' => "playbook", 'tags' => [ "configure", "local_build" ] }
+		{ 'play' => "playbook", 'tags' => [ "build" ] },
+		{ 'play' => "context", 'tags' => [ "build", "configure" ] },
+		{ 'play' => "playbook", 'tags' => [ "configure" ] },
+		{ 'play' => "playbook", 'tags' => [ "dev_setup" ] }
 	]
 
 	if mode == "build"
 		build_steps = [
 			{ 'play' => "playbook", 'tags' => [ "build" ] },
-			{ 'play' => "environment", 'tags' => [ "build" ] },
+			{ 'play' => "context", 'tags' => [ "build" ] },
 		]
 	end
 
 	if mode == "configure"
 		build_steps = [
-			{ 'play' => "environment", 'tags' => [ "configure" ] },
+			{ 'play' => "context", 'tags' => [ "configure" ] },
 			{ 'play' => "playbook", 'tags' => [ "configure" ] }
 		]
 	end

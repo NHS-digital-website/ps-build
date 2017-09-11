@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+function main {
+	local source_folder=$1
+	local destination_folder=$2
+
+	if [ -z "${source_folder}" ]; then
+		error "please specify source_folder"
+	fi
+
+	if [ -z "${destination_folder}" ]; then
+		error "please specify destination_folder"
+	fi
+
+	shipit "${source_folder}" "${destination_folder}"
+}
+
+function shipit {
+	local source_folder=$1
+	local destination_folder=$2
+	local apps_running=
+	local apps_status=
+
+	source ${DIR}/.hippo-manager-env
+	local tomcat_manager_url="http://${TOMCAT_MANAGER_USER}:${TOMCAT_MANAGER_PASSWORD}@${TOMCAT_MANAGER_HOST}/manager/text"
+
+	echo "Stop Hippo...                $(date +%T)"
+	sudo /bin/systemctl stop hippo_authoring
+
+	echo "Ship Hippo...                $(date +%T)"
+	dist_file=$(find ${source_folder} -name "*.tar.gz" | head -n 1)
+	echo " - ${dist_file}"
+	tar -xzf "${dist_file}" -C "${destination_folder}" "webapps" "shared"
+
+	echo "Start Hippo...               $(date +%T)"
+	sudo /bin/systemctl start hippo_authoring
+
+	echo "Wait for Hippo to wake up    $(date +%T)"
+	sleep 2
+
+	while : ; do
+		sleep 1
+		apps_status=$(curl -s -m1 --retry 3 ${tomcat_manager_url}/list | grep -E "^/(cms|site)")
+		apps_running=$(echo "${apps_status}" | grep "running" | wc -l)
+		echo "${apps_status} ...       $(date +%T)"
+
+		[ "2" -ne "${apps_running}" ] || break
+
+		# move the cursor up
+		echo -e "\e[${apps_running}A"
+	done
+}
+
+function usage {
+	print "Usage
+shipit source_folder destination_folder
+"
+}
+
+function error {
+	echo $1
+	exit 1
+}
+
+main "$@"

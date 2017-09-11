@@ -11,47 +11,42 @@ import dateutil.parser
 from distutils.version import LooseVersion
 
 
-def create_artifact(role):
-	artifacts_folder = os.path.abspath(os.path.dirname(__file__) + '/../.artifacts')
-	artifact_filename = artifacts_folder + '/' + role + '.yml'
-	artifact_config = {
+def create_artefact(role):
+	artefacts_folder = os.path.abspath(os.path.dirname(__file__) + '/../.artefacts')
+	artefact_filename = artefacts_folder + '/' + role + '.yml'
+	artefact_config = {
 		role: {
 			'version': 'v0.0.0',
 			'ami': {
 				'id': '',
 				'name': '',
-				'source_id': '',
-				'source_version': 'v0.0.0'
+				'source_id': ''
 			}
 		}
 	}
 	config = get_config()
-	# infrastructure roles (inf_*) should look up the build role name (without the
-	# inf_ prefix)
-	# artifact_filename uses the original role name with inf_ (if present)
-	lookup_role = re.sub(r'^(?:inf_)(.*)', r'\1', role)
 
 	# set role facts
-	role_ami = find_latest_ami(lookup_role)
-	artifact_config[role]['ami']['id'] = role_ami['id']
-	artifact_config[role]['ami']['name'] = role_ami['name']
-	artifact_config[role]['version'] = role_ami['version']
+	role_ami = find_latest_ami(role)
+	artefact_config[role]['ami']['id'] = role_ami['id']
+	artefact_config[role]['ami']['name'] = role_ami['name']
+	artefact_config[role]['version'] = role_ami['version']
 
 	# set parent image facts
-	role_ami_config = config['aws']['ami'][lookup_role]
+	role_ami_config = config['aws']['ami'][role]
 	if 'id' in config['aws']['ami'][role_ami_config['parent']]:
-		artifact_config[role]['ami']['source_id'] = \
+		artefact_config[role]['ami']['source_id'] = \
 			config['aws']['ami'][role_ami_config['parent']]['id']
 	else:
 		parent_ami_data = find_latest_ami(role_ami_config['parent'])
-		artifact_config[role]['ami']['source_id'] = parent_ami_data['id']
-		artifact_config[role]['ami']['source_version'] = parent_ami_data['version']
+		artefact_config[role]['ami']['source_id'] = parent_ami_data['id']
+		artefact_config[role]['ami']['source_version'] = parent_ami_data['version']
 
-	# Save artifact
-	with open(artifact_filename, 'w+') as artifact_file:
+	# Save artefact
+	with open(artefact_filename, 'w+') as artefact_file:
 		yaml.dump(
-			artifact_config,
-			artifact_file,
+			artefact_config,
+			artefact_file,
 			explicit_start=True,
 			indent=2,
 			default_flow_style=False
@@ -61,6 +56,7 @@ def create_artifact(role):
 def find_latest_ami(role):
 	ami_data = {
 		'id': '',
+		'name': '',
 		'version': ''
 	}
 	ec2_client = boto3.client('ec2')
@@ -70,7 +66,7 @@ def find_latest_ami(role):
 		Filters=[
 			{
 				'Name': 'name',
-				'Values': [role + '-v*']
+				'Values': [role + '-*']
 			},
 			{
 				'Name': 'state',
@@ -85,7 +81,6 @@ def find_latest_ami(role):
 		image_data = {
 			'id': image['ImageId'],
 			'name': image['Name'],
-			'tags': image['Tags'],
 			'creationTimestamp': time.mktime(dateutil.parser.parse(
 				image['CreationDate']).timetuple()
 			)
@@ -97,7 +92,14 @@ def find_latest_ami(role):
 
 		images_list.append(image_data)
 
-	images_list.sort(key=lambda x: (LooseVersion(x['version'])), reverse=True)
+	images_list.sort(
+		key=lambda x: (LooseVersion(x['version']), x['creationTimestamp']),
+		reverse=True
+	)
+
+	# no images - return rmpty dict
+	if not images_list:
+		return ami_data
 
 	ami_data['id'] = images_list[0]['id']
 	ami_data['name'] = images_list[0]['name']
@@ -108,7 +110,7 @@ def find_latest_ami(role):
 
 def get_config():
 	config_filename = os.path.abspath(
-		os.path.dirname(__file__) + '/../.build.yml'
+		os.path.dirname(__file__) + '/../.aws.yml'
 	)
 	config = {}
 
@@ -129,4 +131,4 @@ if __name__ == '__main__':
 		os.path.basename(sys.argv[1])
 	)
 
-	create_artifact(role)
+	create_artefact(role)

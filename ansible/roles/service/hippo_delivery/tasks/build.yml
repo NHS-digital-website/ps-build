@@ -63,7 +63,7 @@
     regexp: "^shared.loader="
     # line: shared.loader=${catalina.base}/shared/lib,/opt/tomcat-endorsed
 
-- name: copy config
+- name: Copy config
   become: yes
   template:
     dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
@@ -76,26 +76,18 @@
     - conf/log4j.xml
     - conf/repository.xml
 
-- name: copy bin wrappers
-  become: yes
-  copy:
-    dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
-    group: "{{ hippo_delivery.user }}"
-    owner: "{{ hippo_delivery.user }}"
-    src: "{{ item }}"
-    mode: u=rwx
-  with_items:
-    - bin/shutdown_wrapper.sh
-    - bin/startup_wrapper.sh
-
-- name: Create setenv file
+- name: Create tomcat/bin files
   become: yes
   template:
-    dest: "/home/{{ hippo_delivery.user }}/tomcat/bin/setenv.sh"
+    dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
     group: "{{ hippo_delivery.user }}"
     mode: u=rwx
     owner: "{{ hippo_delivery.user }}"
-    src: bin/setenv.sh.j2
+    src: "{{ item }}.j2"
+  with_items:
+    - bin/setenv.sh
+    - bin/shutdown_wrapper.sh
+    - bin/startup_wrapper.sh
 
 - name: Create Systemd service
   become: yes

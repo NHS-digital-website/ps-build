@@ -11,13 +11,14 @@ function usage {
 }
 
 function main {
-	manifest=$1
-	ami_details=
-	ami_name=
-	ami_version=
-	ami_role=
-	ami_id=
-	last_run_uuid=
+	local manifest=$1
+	local ami_details=
+	local ami_id=
+	local ami_name=
+	local ami_role=
+	local ami_source_id=
+	local ami_version=
+	local last_run_uuid=
 
 	# get the AMI id from the latest build
 	last_run_uuid=$(jq -Mr '.last_run_uuid' "${manifest}")
@@ -27,20 +28,23 @@ function main {
 		--output text \
 		--image-ids="${ami_id}" \
 		--query "Images[*].{\
+			base_ami_id:Tags[?Key=='BaseImageId'].Value[] | [0], \
 			name:Tags[?Key=='Name'].Value[] | [0], \
 			role:Tags[?Key=='Role'].Value[] | [0], \
 			version:Tags[?Key=='Version'].Value[] | [0] \
 		}")
 
-	ami_name=$(cut -f1 -d"$(echo -e "\t")" <<< "${ami_details}")
-	ami_role=$(cut -f2 -d"$(echo -e "\t")" <<< "${ami_details}")
-	ami_version=$(cut -f3 -d"$(echo -e "\t")" <<< "${ami_details}")
+	ami_source_id=$(cut -f1 -d"$(echo -e "\t")" <<< "${ami_details}")
+	ami_name=$(cut -f2 -d"$(echo -e "\t")" <<< "${ami_details}")
+	ami_role=$(cut -f3 -d"$(echo -e "\t")" <<< "${ami_details}")
+	ami_version=$(cut -f4 -d"$(echo -e "\t")" <<< "${ami_details}")
 
 	echo "---
 ${ami_role}:
   ami:
     id: ${ami_id}
     name: ${ami_name}
+    source_id: ${ami_source_id}
   version: ${ami_version}
 " > ".artefacts/${ami_role}.yml"
 }

@@ -1,6 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-IFS=$'\n\t'
 
 function main {
 	while [ ! -f /var/lib/cloud/instance/boot-finished ];

@@ -1,0 +1,12 @@
+---
+
+- name: Dev helper scripts
+  become: yes
+  copy:
+    dest: "/home/{{ hippo_authoring.user }}/"
+    group: "{{ hippo_authoring.user }}"
+    mode: u=rwx,g=r,o=r
+    owner: "{{ hippo_authoring.user }}"
+    src: "dev/{{ item }}"
+  with_items:
+    - shipit

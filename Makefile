@@ -7,6 +7,7 @@ AWS_BUILD_VPC_ID ?=
 PWD = $(shell pwd)
 REGION ?= eu-west-1
 ROLE ?=
+USERNAME ?=
 VENV ?= .venv
 
 # Ansible 2.2.1 introduced a bug with paths for "local" connections
@@ -37,7 +38,7 @@ init: .git/.local-hooks-installed $(VENV)
 ## Sudo for AWS Roles
 # Usage: $(make aws-sudo TOKEN=123789)
 aws-sudo: $(VENV)
-	@(printenv TOKEN && aws-sudo -m $(TOKEN) $(PROFILE) ) || ( \
+	@(printenv TOKEN > /dev/null && aws-sudo -m $(TOKEN) $(PROFILE) ) || ( \
 		aws-sudo $(PROFILE) \
 	)
 
@@ -78,18 +79,6 @@ lint.ansible: $(VENV)
 	$(MAKE) ansible.check ROLE=hippo_authoring
 	$(MAKE) ansible.check ROLE=hippo_delivery
 
-## Check syntax for given ROLE
-# Usage: make ansible.check ROLE=hippo_authoring
-ansible.check: $(VENV) ansible/roles/vendor
-	ansible-playbook --syntax-check \
-		--inventory ansible/inventories/localhost \
-		--extra-vars hosts=localhost \
-		--extra-vars role=$(ROLE) \
-		--extra-vars root_dir=$(PWD)/ansible \
-		--extra-vars @$(PWD)/vagrant/config.yml \
-		$(EXTRAS) \
-		ansible/playbooks/ami.yml
-
 ## Lint Bash scripts
 lint.bash:
 	@which shellcheck > /dev/null || (\
@@ -101,6 +90,18 @@ lint.bash:
 			| grep ":1:" \
 			| sed -E 's/([^:]*):.*/\1/' \
 			| xargs -I% bash -c 'cd $$(dirname %) && shellcheck -x $(PWD)/%'
+
+## Check syntax for given ROLE
+# Usage: make ansible.check ROLE=hippo_authoring
+ansible.check: $(VENV) ansible/roles/vendor
+	ansible-playbook --syntax-check \
+		--inventory ansible/inventories/localhost \
+		--extra-vars hosts=localhost \
+		--extra-vars role=$(ROLE) \
+		--extra-vars root_dir=$(PWD)/ansible \
+		--extra-vars @$(PWD)/vagrant/config.yml \
+		$(EXTRAS) \
+		ansible/playbooks/ami.yml
 
 ## Builds an AMI using an Ansible role
 #
@@ -116,28 +117,28 @@ ami: .artefacts .log vendor/packer vendor/jq $(VENV) ansible/roles/vendor
 		-var 'aws_subnet_id=$(AWS_BUILD_SUBNET_ID)' \
 		-var 'aws_vpc_id=$(AWS_BUILD_VPC_ID)' \
 		-var 'base_ami_id=$(shell get_base_ami_id $(ROLE))' \
-		-var 'build_name=$(shell ./bin/get_build_name $(BUILD_NAME))' \
-		-var 'build_version=$(shell ./bin/get_repo_version)' \
-		-var 'root_dir=$(PWD)/ansible' \
+		-var 'build_name=$(shell get_build_name $(BUILD_NAME))' \
+		-var 'build_version=$(shell get_repo_version)' \
 		-var 'role=$(ROLE)' \
+		-var 'root_dir=$(PWD)/ansible' \
 		"packer/ami.json"
 
 ## Debug AMI build process
 # Usage: make ami_debug ROLE=api_storelocator USERNAME=iam.key.name
-ami_debug: .artefacts vendor/packer vendor/jq $(VENV) ansible/roles/vendor
+ami.debug: .artefacts vendor/packer vendor/jq $(VENV) ansible/roles/vendor
 	packer build -debug \
-		-var 'aws_instance_type=t2.micro' \
+		-var 'aws_instance_type=$(AWS_BUILD_INSTANCE_TYPE)' \
 		-var 'aws_region=$(REGION)' \
-		-var 'aws_subnet_id=$(shell shyaml get-value aws.build.subnet < .config.yml)' \
-		-var 'aws_vpc_id=$(shell shyaml get-value aws.build.vpc_id < .config.yml)' \
-		-var 'base_ami_id=$(shell shyaml get-value aws.ami.ubuntu_xenail.id < .build.yml)' \
+		-var 'aws_subnet_id=$(AWS_BUILD_SUBNET_ID)' \
+		-var 'aws_vpc_id=$(AWS_BUILD_VPC_ID)' \
+		-var 'base_ami_id=$(shell get_base_ami_id $(ROLE))' \
 		-var 'build_name=$(shell ./bin/get_build_name $(BUILD_NAME))' \
 		-var 'build_version=$(shell ./bin/get_repo_version)' \
 		-var 'disable_stop_instance=true' \
-		-var 'ssh_keypair_name=$(USERNAME)' \
-		-var 'ssh_agent_auth=true' \
-		-var 'root_dir=$(PWD)/ansible' \
 		-var 'role=$(ROLE)' \
+		-var 'root_dir=$(PWD)/ansible' \
+		-var 'ssh_agent_auth=true' \
+		-var 'ssh_keypair_name=$(USERNAME)' \
 		"packer/ami.json"
 
 ## Builds and `ssh` to given machine.
@@ -170,18 +171,44 @@ vagrant.watch:
 		| entr -d $(MAKE) lint vagrant.build ROLE=$(ROLE); \
 	done
 
+## Executes given command on vagrant box
+# Usage: make vagrant.exec ROLE=hippo_delivery COMMAND="echo 'Hello world!'"
+vagrant.exec:
+	@printenv ROLE || ( \
+		echo "please specify ROLE, example: make vagrant ROLE=hippo_delivery" \
+		&& exit 1 \
+	)
+	vagrant up --no-provision
+	vagrant ssh -c "$(COMMAND)"
+
 ## Runs simple command on a given local VM.
 # Usage: make vagrant.ssh ROLE=hippo_delivery
 #        make vagrant.status ROLE=hippo_delivery
 #        make vagrant.halt ROLE=hippo_delivery
 #        make vagrant.destroy ROLE=hippo_delivery
 vagrant.%:
+	@printenv ROLE || ( \
+		echo "please specify ROLE, example: make vagrant ROLE=hippo_delivery" \
+		&& exit 1 \
+	)
 	MODE=$(MODE) vagrant $(subst vagrant.,,$@)
+
+## Builds a vagrant VirtualBox ".box"
+# This gives you working vagrant image box that you can share with others.
+# Usage:
+#   make box ROLE=api_kong
+box: .artefacts/ubuntu-16.04.3-server-amd64.iso $(VENV) vendor/packer ansible/roles/vendor
+	@mkdir -p .artefacts/boxes
+	packer build \
+		-var 'role=$(ROLE)' \
+		-var 'root_dir=$(PWD)/ansible' \
+		"packer/vagrant.json"
 
 ## Delete all downloaded and generated files
 clean:
 	rm -rf ansible/roles/vendor
 	rm -rf $(VENV)
+	find . -name "*.retry" | xargs rm
 
 $(VENV):
 	@which virtualenv > /dev/null || (\
@@ -211,5 +238,12 @@ ansible/roles/vendor: $(VENV) .phony
 .artefacts/%.yml: .artefacts
 	bin/create_latest_artifact $@
 
+# Downloads ubuntu xenial iso image (for vagrant box build)
+.artefacts/ubuntu-16.04.3-server-amd64.iso:
+	curl -Lo .artefacts/ubuntu-16.04.3-server-amd64.iso \
+		http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso
+
 .log:
 	mkdir -p .log
+
+.phony:

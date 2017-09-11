@@ -1,0 +1,4 @@
+---
+
+- name: Base Image does not need any context
+  hosts: "{{ hosts }}"

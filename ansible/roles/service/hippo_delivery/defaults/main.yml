@@ -1,8 +1,13 @@
 ---
 
 hippo_delivery:
-  user: hippocms
+  user: hippo_delivery
   domain: hippo_delivery
+  # how to deploy / download Hippo
+  # - internal
+  # - local
+  # - s3
+  deploy_type: ~
 
   java:
     version: 8
