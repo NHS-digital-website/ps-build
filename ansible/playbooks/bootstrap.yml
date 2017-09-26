@@ -1,0 +1,8 @@
+---
+# bootstrap
+
+- name: Bootstrap
+  hosts: localhost
+
+  roles:
+    - role: "{{ role }}"

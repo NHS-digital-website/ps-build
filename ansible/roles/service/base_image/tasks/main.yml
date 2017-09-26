@@ -1,0 +1,6 @@
+---
+
+- name: Include build tasks
+  include: build.yml
+  tags:
+    - build

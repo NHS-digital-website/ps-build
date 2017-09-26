@@ -1,3 +1,20 @@
 ---
 
 - include: "{{ root_dir }}/roles/service/{{ role }}/playbook.yml"
+
+- name: Ensure common roles
+  hosts: "{{ hosts }}"
+
+  pre_tasks:
+    - name: Delete current bootstrap folder
+      become: yes
+      file:
+        path: /bootstrap
+        state: absent
+      tags:
+        - build
+
+  roles:
+    - role: ansible-city.aws_bootstrap
+      aws_bootstrap:
+        teleport_mode: standard

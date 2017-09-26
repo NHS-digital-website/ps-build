@@ -16,6 +16,7 @@
 /.mk
 /.vagrant
 /.venv
+/manifest.json
 /output-virtualbox-iso
 /vagrant/config_override.yml
 /vendor
