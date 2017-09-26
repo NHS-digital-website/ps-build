@@ -1,0 +1,61 @@
+---
+
+- name: Install base utilities
+  become: yes
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - curl
+    - dnsutils
+    - htop
+    - iftop
+    - iotop
+    - screen
+    - sysstat
+    - tcptraceroute
+    - traceroute
+    - vim
+    - wget
+
+- name: Setup sysstat config
+  become: yes
+  template:
+    src: sysstat.j2
+    dest: /etc/default/sysstat
+  notify:
+    - restart sysstat
+
+- name: Disable unattended updates
+  become: yes
+  lineinfile:
+    dest: /etc/apt/apt.conf.d/10periodic
+    line: "APT::Periodic::Unattended-Upgrade \"0\";"
+    regexp: ^APT::Periodic::Unattended-Upgrade
+
+- name: Clean apt
+  become: yes
+  apt:
+    autoremove: yes
+    cache_valid_time: 0
+    update_cache: yes
+
+- name: Disable daily updates
+  become: yes
+  command: "{{ item }}"
+  with_items:
+    - systemctl disable apt-daily.service # disable run when system boot
+    - systemctl disable apt-daily.timer   # disable timer run
+  tags:
+    - skip_ansible_lint
+
+- name: Ensure ssh timeout
+  become: yes
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: ^ClientAliveInterval
+      line: ClientAliveInterval 900
+    - regexp: ^ClientAliveCountMax
+      line: ClientAliveCountMax 0

@@ -8,7 +8,7 @@ PWD = $(shell pwd)
 REGION ?= eu-west-1
 ROLE ?=
 USERNAME ?=
-VENV ?= .venv
+VENV ?= $(PWD)/.venv
 
 # Ansible 2.2.1 introduced a bug with paths for "local" connections
 export HOME
@@ -122,6 +122,7 @@ ami: .artefacts .log vendor/packer vendor/jq $(VENV) ansible/roles/vendor
 		-var 'role=$(ROLE)' \
 		-var 'root_dir=$(PWD)/ansible' \
 		"packer/ami.json"
+	rm -rf self.tgz
 
 ## Debug AMI build process
 # Usage: make ami_debug ROLE=api_storelocator USERNAME=iam.key.name
@@ -203,6 +204,19 @@ box: .artefacts/ubuntu-16.04.3-server-amd64.iso $(VENV) vendor/packer ansible/ro
 		-var 'role=$(ROLE)' \
 		-var 'root_dir=$(PWD)/ansible' \
 		"packer/vagrant.json"
+
+## Configure localhost
+# ! DO NOT RUN LOCALLY !
+# This target is designed to be used for bootstraping machine in given environment.
+# Usage:
+#   make ansible_configure_local ROLE=bastion
+ansible_configure_local:
+	cd ansible && ansible-playbook \
+		-i inventories/localhost \
+		-e role=$(ROLE) \
+		-e root_dir=/bootstrap/ansible \
+		--tags=configure \
+		playbooks/bootstrap.yml
 
 ## Delete all downloaded and generated files
 clean:

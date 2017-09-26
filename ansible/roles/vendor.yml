@@ -1,5 +1,8 @@
 ---
 
+- role: ansible-city.aws_bootstrap
+  version: v1.0
+
 - role: sansible.java
   version: v1.0
 

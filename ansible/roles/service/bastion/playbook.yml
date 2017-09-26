@@ -1,0 +1,15 @@
+
+- name: Base Image
+  hosts: "{{ hosts }}"
+
+  pre_tasks:
+    - name: Update apt
+      become: yes
+      apt:
+        cache_valid_time: 1800
+        update_cache: yes
+      tags:
+        - build
+
+  roles:
+    - role: bastion
