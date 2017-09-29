@@ -20,7 +20,7 @@
 		minEvictableIdleTimeMillis="60000"
 		username="{{ hippo_authoring.mysql.user }}" password="{{ hippo_authoring.mysql.password }}"
 		driverClassName="com.mysql.jdbc.Driver"
-		url="jdbc:mysql://localhost:3306/hippocms?characterEncoding=utf8"
+		url="jdbc:mysql://{{ hippo_authoring.mysql.host }}:3306/hippocms?characterEncoding=utf8"
 	/>
 
 	<!-- JNDI resource exposing database connection goes here -->

@@ -5,6 +5,7 @@
   apt:
     name: "{{ item }}"
   with_items:
+    - aptitude
     - curl
     - dnsutils
     - htop
@@ -47,6 +48,12 @@
     - systemctl disable apt-daily.timer   # disable timer run
   tags:
     - skip_ansible_lint
+
+- name: Remove Automatic Updates
+  become: yes
+  apt:
+    name: update-manager
+    state: absent
 
 - name: Ensure ssh timeout
   become: yes

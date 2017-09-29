@@ -4,6 +4,20 @@
 
 - include: configure/nginx.yml
 
+- name: Copy config
+  become: yes
+  template:
+    dest: "/home/{{ hippo_authoring.user }}/tomcat/{{ item }}"
+    group: "{{ hippo_authoring.user }}"
+    owner: "{{ hippo_authoring.user }}"
+    src: "{{ item }}.j2"
+    mode: u=rw
+  with_items:
+    - conf/context.xml
+    - conf/log4j.xml
+    - conf/repository.xml
+    - conf/tomcat-users.xml
+
 - name: Ensure Hippo CMS is running
   become: yes
   service:

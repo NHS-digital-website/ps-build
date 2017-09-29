@@ -18,7 +18,7 @@ function main {
 	check_if_codebuild
 	check_if_gocd
 
-	echo "$(date +%Y.%m.%d)-$(head -c 80 /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c 7)"
+	head -c 80 /dev/urandom | LC_CTYPE=C tr -dc 'a-zA-Z0-9' | head -c 7
 }
 
 function check_if_concourse {

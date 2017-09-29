@@ -71,20 +71,6 @@
     regexp: "^shared.loader="
     # line: shared.loader=${catalina.base}/shared/lib,/opt/tomcat-endorsed
 
-- name: Copy config
-  become: yes
-  template:
-    dest: "/home/{{ hippo_authoring.user }}/tomcat/{{ item }}"
-    group: "{{ hippo_authoring.user }}"
-    owner: "{{ hippo_authoring.user }}"
-    src: "{{ item }}.j2"
-    mode: u=rw
-  with_items:
-    - conf/context.xml
-    - conf/log4j.xml
-    - conf/repository.xml
-    - conf/tomcat-users.xml
-
 - name: Create tomcat/bin files
   become: yes
   template:
@@ -126,5 +112,18 @@
     mode: u=rw,o=r,g=r
     src: sudoers.d/hippo_authoring.j2
 
-- include: "deploy_{{ hippo_authoring.deploy_type }}.yml"
-  when: hippo_authoring.deploy_type
+- include: "source_{{ hippo_authoring.source.type }}.yml"
+  when: hippo_authoring.source.type
+
+- name: Unarchive hippocms
+  become: yes
+  unarchive:
+    dest: "/home/{{ hippo_authoring.user }}/tomcat"
+    extra_opts:
+      - common
+      - shared
+      - webapps
+    group: "{{ hippo_authoring.user }}"
+    owner: "{{ hippo_authoring.user }}"
+    remote_src: yes
+    src: /tmp/hippo_authoring-{{ hippo_authoring.version }}.tgz

@@ -12,6 +12,7 @@
 
 
 ## Build, etc
+/self.tgz
 *.log
 /.mk
 /.vagrant

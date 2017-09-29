@@ -9,6 +9,8 @@ REGION ?= eu-west-1
 ROLE ?=
 USERNAME ?=
 VENV ?= $(PWD)/.venv
+VERSION ?= $(shell git describe --tags)
+VERSION_ROLE ?= $(shell (cat .artefacts/$(ROLE).yml 2>/dev/null || echo "$(ROLE): { version: no-service }") | shyaml get-value '$(ROLE).version')
 
 # Ansible 2.2.1 introduced a bug with paths for "local" connections
 export HOME
@@ -118,11 +120,14 @@ ami: .artefacts .log vendor/packer vendor/jq $(VENV) ansible/roles/vendor
 		-var 'aws_vpc_id=$(AWS_BUILD_VPC_ID)' \
 		-var 'base_ami_id=$(shell get_base_ami_id $(ROLE))' \
 		-var 'build_name=$(shell get_build_name $(BUILD_NAME))' \
-		-var 'build_version=$(shell get_repo_version)' \
+		-var 'build_version=$(VERSION)-$(VERSION_ROLE)' \
 		-var 'role=$(ROLE)' \
 		-var 'root_dir=$(PWD)/ansible' \
 		"packer/ami.json"
 	rm -rf self.tgz
+
+ami.artefacts:
+	$(MAKE) .artefacts/$(ROLE)-$(shell cat .artefacts/$(ROLE).yml | shyaml get-value $(ROLE).version).tgz ROLE=$(ROLE)
 
 ## Debug AMI build process
 # Usage: make ami_debug ROLE=api_storelocator USERNAME=iam.key.name
@@ -134,7 +139,7 @@ ami.debug: .artefacts vendor/packer vendor/jq $(VENV) ansible/roles/vendor
 		-var 'aws_vpc_id=$(AWS_BUILD_VPC_ID)' \
 		-var 'base_ami_id=$(shell get_base_ami_id $(ROLE))' \
 		-var 'build_name=$(shell ./bin/get_build_name $(BUILD_NAME))' \
-		-var 'build_version=$(shell ./bin/get_repo_version)' \
+		-var 'build_version=$(VERSION)-$(VERSION_ROLE)' \
 		-var 'disable_stop_instance=true' \
 		-var 'role=$(ROLE)' \
 		-var 'root_dir=$(PWD)/ansible' \
@@ -205,6 +210,17 @@ box: .artefacts/ubuntu-16.04.3-server-amd64.iso $(VENV) vendor/packer ansible/ro
 		-var 'root_dir=$(PWD)/ansible' \
 		"packer/vagrant.json"
 
+## Create new version tag based on the nearest tag
+version.bumpup:
+	@git tag $$((git describe --abbrev=0 --tags | grep $$(cat .version) || echo $$(cat .version).-1) | perl -pe 's/^(v(\d+\.)*)(-?\d+)(.*)$$/$$1.($$3+1).$$4/e')
+	$(MAKE) version.print
+
+## Prints current version
+version.print:
+	@echo "- - -"
+	@echo "Current version: $(VERSION)"
+	@echo "- - -"
+
 ## Configure localhost
 # ! DO NOT RUN LOCALLY !
 # This target is designed to be used for bootstraping machine in given environment.
@@ -215,6 +231,7 @@ ansible_configure_local:
 		-i inventories/localhost \
 		-e role=$(ROLE) \
 		-e root_dir=/bootstrap/ansible \
+		-e @/bootstrap/environment.yml \
 		--tags=configure \
 		playbooks/bootstrap.yml
 
@@ -256,6 +273,12 @@ ansible/roles/vendor: $(VENV) .phony
 .artefacts/ubuntu-16.04.3-server-amd64.iso:
 	curl -Lo .artefacts/ubuntu-16.04.3-server-amd64.iso \
 		http://releases.ubuntu.com/16.04/ubuntu-16.04.3-server-amd64.iso
+
+# Downloads Hippo distribution tgz
+.artefacts/$(ROLE)-%.tgz:
+	aws s3 cp \
+		s3://artefacts.ps.digital.nhs.uk/$(ROLE)/$(patsubst .artefacts/$(ROLE)-%.tgz,%,$@)/publication-system.tgz \
+		$@
 
 .log:
 	mkdir -p .log

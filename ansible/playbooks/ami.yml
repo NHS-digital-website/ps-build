@@ -1,6 +1,36 @@
 ---
 
-- include: "{{ root_dir }}/roles/service/{{ role }}/playbook.yml"
+- name: AMI Build
+  hosts: "{{ hosts }}"
+  gather_facts: false
+
+  pre_tasks:
+    - name: Assert global variable are set
+      assert:
+        that:
+          - role is defined
+      tags:
+        - build
+
+    - name: Load build artefact
+      include_vars: "{{ playbook_dir }}/../../.artefacts/{{ role }}.yml"
+      when: role in [ 'hippo_authoring' ]
+      tags:
+        - build
+
+    - name: Update apt
+      become: yes
+      apt:
+        cache_valid_time: 1800
+        update_cache: yes
+      register: result
+      until: result | succeeded
+      retries: 3
+      tags:
+        - build
+
+  roles:
+    - role: "{{ role }}"
 
 - name: Ensure common roles
   hosts: "{{ hosts }}"
@@ -18,3 +48,5 @@
     - role: ansible-city.aws_bootstrap
       aws_bootstrap:
         teleport_mode: standard
+        extras:
+          - mysql

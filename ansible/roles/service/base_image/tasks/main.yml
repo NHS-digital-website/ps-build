@@ -4,3 +4,8 @@
   include: build.yml
   tags:
     - build
+
+
+- name: Include security_hardening role
+  include_role:
+    name: sansible.security_hardening

@@ -8,3 +8,5 @@ aws:
       parent: ubuntu_xenial
     bastion:
       parent: base_image
+    hippo_authoring:
+      parent: base_image

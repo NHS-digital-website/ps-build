@@ -10,7 +10,7 @@ CLUSTER_ID="$(whoami)-$(hostname -f)"
 MAX_HEAP=512
 MIN_HEAP=256
 
-REP_OPTS="-Drepo.bootstrap=false -Drepo.config=file:${CATALINA_BASE}/conf/repository.xml"
+REP_OPTS="-Drepo.bootstrap=full -Drepo.config=file:${CATALINA_BASE}/conf/repository.xml"
 JVM_OPTS="-server -Xmx${MAX_HEAP}m -Xms${MIN_HEAP}m -XX:+UseG1GC -Djava.util.Arrays.useLegacyMergeSort=true"
 DMP_OPTS="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/{{ hippo_authoring.user }}/heapdumps"
 RMI_OPTS="-Djava.rmi.server.hostname=127.0.0.1"

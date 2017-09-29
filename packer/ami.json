@@ -1,18 +1,18 @@
 {
 	"variables": {
 		"ansible_config": "{{ env `ANSIBLE_CONFIG` }}",
-		"build_version": "",
 		"aws_instance_type": "",
 		"aws_region": "",
 		"aws_subnet_id": "",
 		"aws_vpc_id": "",
 		"base_ami_id": "",
 		"build_name": "",
+		"build_version": "",
 		"disable_stop_instance": "false",
 		"role": "",
 		"root_dir": "",
-		"ssh_keypair_name": "",
-		"ssh_agent_auth": "false"
+		"ssh_agent_auth": "false",
+		"ssh_keypair_name": ""
 	},
 	"builders": [ {
 		"ami_name": "{{ user `role` }}-{{ user `build_version` }}-{{ user `build_name` }}",

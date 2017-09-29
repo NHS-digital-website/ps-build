@@ -1,52 +1,98 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-CMD="$(basename "${BASH_SOURCE[0]}")"
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+##
+# Enrich existing build YAML artefact with details from Packer manifest.
+#
+#
+import boto3
+import os
+import sys
+import yaml
+import json
 
-# shellcheck source=./base.sh
-source "${DIR}/base.sh"
 
-function usage {
-	die "Usage: ${CMD} manifest.json"
-}
+def enrich_build_artefact(manifest_filename):
+	manifest = load_json(manifest_filename)
+	ami_id = None
+	role = None
+	artefact_filename = None
+	tags = []
 
-function main {
-	local manifest=$1
-	local ami_details=
-	local ami_id=
-	local ami_name=
-	local ami_role=
-	local ami_source_id=
-	local ami_version=
-	local last_run_uuid=
+	for build in manifest['builds']:
+		if build['packer_run_uuid'] == manifest['last_run_uuid']:
+			ami_id = build['artifact_id'].split(':')[1]
+			break
 
-	# get the AMI id from the latest build
-	last_run_uuid=$(jq -Mr '.last_run_uuid' "${manifest}")
-	ami_id=$(jq -Mr ".builds[] | select(.packer_run_uuid == \"${last_run_uuid}\") | .artifact_id" "${manifest}" | sed 's/.*://')
+	# get AMI details
+	ec2_client = boto3.client('ec2')
+	images = ec2_client.describe_images(
+		Owners=['self'],
+		ImageIds=[ami_id]
+	)
+	tags = dict(zip(
+		map(lambda x: x['Key'], images['Images'][0]['Tags']),
+		map(lambda x: x['Value'], images['Images'][0]['Tags'])
+	))
+	role = tags['Role']
 
-	ami_details=$(aws ec2 describe-images \
-		--output text \
-		--image-ids="${ami_id}" \
-		--query "Images[*].{\
-			base_ami_id:Tags[?Key=='BaseImageId'].Value[] | [0], \
-			name:Tags[?Key=='Name'].Value[] | [0], \
-			role:Tags[?Key=='Role'].Value[] | [0], \
-			version:Tags[?Key=='Version'].Value[] | [0] \
-		}")
+	artefact_filename = os.path.join(
+		os.path.dirname(__file__),
+		'..',
+		'.artefacts',
+		role + '.yml'
+	)
 
-	ami_source_id=$(cut -f1 -d"$(echo -e "\t")" <<< "${ami_details}")
-	ami_name=$(cut -f2 -d"$(echo -e "\t")" <<< "${ami_details}")
-	ami_role=$(cut -f3 -d"$(echo -e "\t")" <<< "${ami_details}")
-	ami_version=$(cut -f4 -d"$(echo -e "\t")" <<< "${ami_details}")
+	# update build artefact
+	build_artefact = load_yaml(artefact_filename)
+	if 'ami' not in build_artefact[role]:
+		build_artefact[role]['ami'] = {}
+	build_artefact[role]['ami']['id'] = str(ami_id)
+	build_artefact[role]['ami']['name'] = tags['Name']
+	build_artefact[role]['ami']['source_id'] = tags['BaseImageId']
+	build_artefact[role]['ami']['version'] = tags['Version']
+	save_yaml(artefact_filename, build_artefact)
 
-	echo "---
-${ami_role}:
-  ami:
-    id: ${ami_id}
-    name: ${ami_name}
-    source_id: ${ami_source_id}
-  version: ${ami_version}
-" > ".artefacts/${ami_role}.yml"
-}
 
-main "$@"
+def load_yaml(filename):
+	yaml_hash = {}
+
+	if os.path.exists(filename):
+		with open(filename, 'r') as yml_file:
+			try:
+				yaml_hash = yaml.load(yml_file)
+			except yaml.YAMLError as exc:
+				print >> std.err, exc
+
+	return yaml_hash
+
+
+def save_yaml(filename, yaml_hash):
+	if os.path.exists(filename):
+		with open(filename, 'w+') as yml_file:
+			try:
+				yaml.dump(
+					yaml_hash,
+					yml_file,
+					explicit_start=True,
+					indent=2,
+					default_flow_style=False
+				)
+			except:
+				print >> std.err, sys.exc_info()[0]
+
+
+def load_json(filename):
+	json_hash = {}
+
+	if os.path.exists(filename):
+		with open(filename, 'r') as json_file:
+			try:
+				json_hash = json.load(json_file)
+			except:
+				print >> std.err, sys.exc_info()[0]
+
+	return json_hash
+
+
+if __name__ == '__main__':
+	enrich_build_artefact(sys.argv[1])

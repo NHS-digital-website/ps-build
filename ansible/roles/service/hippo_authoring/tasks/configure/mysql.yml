@@ -2,8 +2,10 @@
 
 - name: Ensure hippocms user
   mysql_user:
-    login_user: "{{ hippo_authoring.mysql.root_user }}"
+    host: "%"
+    login_host: "{{ hippo_authoring.mysql.host }}"
     login_password: "{{ hippo_authoring.mysql.root_password }}"
+    login_user: "{{ hippo_authoring.mysql.root_user }}"
     name: "{{ hippo_authoring.mysql.user }}"
     password: "{{ hippo_authoring.mysql.password }}"
     priv: "{{ hippo_authoring.mysql.dbname }}.*:ALL"
@@ -11,7 +13,8 @@
 
 - name: Ensure hippocms database
   mysql_db:
-    login_user: "{{ hippo_authoring.mysql.root_user }}"
+    login_host: "{{ hippo_authoring.mysql.host }}"
     login_password: "{{ hippo_authoring.mysql.root_password }}"
+    login_user: "{{ hippo_authoring.mysql.root_user }}"
     name: "{{ hippo_authoring.mysql.dbname }}"
     state: present

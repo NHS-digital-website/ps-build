@@ -17,6 +17,6 @@
   roles:
     - role: sansible.mysql
       mysql:
-        version: 5.7
+        version: "5.7"
         root_user: "{{ hippo_authoring.mysql.root_user }}"
         root_password: "{{ hippo_authoring.mysql.root_password }}"
