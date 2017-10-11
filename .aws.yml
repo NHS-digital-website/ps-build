@@ -10,3 +10,5 @@ aws:
       parent: base_image
     hippo_authoring:
       parent: base_image
+    hippo_delivery:
+      parent: base_image

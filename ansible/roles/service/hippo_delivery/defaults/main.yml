@@ -3,21 +3,28 @@
 hippo_delivery:
   user: hippo_delivery
   domain: hippo_delivery
-  # how to deploy / download Hippo
-  # - internal
-  # - local
-  # - s3
-  deploy_type: ~
+  manager_password: hippo
 
   java:
     version: 8
 
   mysql:
+    host: hippo-authoring.mysql.db.int
     root_user: root
     root_password: changeme!
     user: hippocms
     password: changeme!hippocms
     dbname: hippocms
 
+  ## how to download Hippo
+  # source:
+  #   type: s3
+  #   s3_src: s3://my-bucket.com/path/
+  #
+  # source:
+  #   type: local
+  source:
+    type: ~
+
   tomcat:
-    version: "8.0.46"
+    version: "8.0.47"

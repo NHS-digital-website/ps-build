@@ -69,7 +69,6 @@
     dest: "/home/{{ hippo_authoring.user }}/tomcat/conf/catalina.properties"
     line: shared.loader=${catalina.base}/shared/lib,${catalina.base}/shared/lib/*.jar
     regexp: "^shared.loader="
-    # line: shared.loader=${catalina.base}/shared/lib,/opt/tomcat-endorsed
 
 - name: Create tomcat/bin files
   become: yes
@@ -105,6 +104,7 @@
     enabled: no
     name: "{{ hippo_authoring.user }}"
 
+# Allow "hippo_authoring" user to operate hippo_authoring service
 - name: Create sudoers config
   become: yes
   template:
@@ -112,6 +112,9 @@
     mode: u=rw,o=r,g=r
     src: sudoers.d/hippo_authoring.j2
 
+##
+# Download and unpack Hippo CMS
+#
 - include: "source_{{ hippo_authoring.source.type }}.yml"
   when: hippo_authoring.source.type
 

@@ -28,3 +28,7 @@ base_image:
 hippo_authoring:
   source:
     type: local
+
+hippo_delivery:
+  source:
+    type: local

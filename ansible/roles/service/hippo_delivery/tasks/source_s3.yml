@@ -1,0 +1,6 @@
+---
+
+- name: Download hippocms from S3
+  command: "aws s3 cp
+    {{ hippo_delivery.source.s3_basepath }}/hippo_delivery/{{ hippo_delivery.version }}/publication-system.tgz
+    /tmp/hippo_delivery-{{ hippo_delivery.version }}.tgz"

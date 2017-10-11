@@ -14,7 +14,7 @@
 
     - name: Load build artefact
       include_vars: "{{ playbook_dir }}/../../.artefacts/{{ role }}.yml"
-      when: role in [ 'hippo_authoring' ]
+      when: role in [ 'hippo_authoring', 'hippo_delivery' ]
       tags:
         - build
 

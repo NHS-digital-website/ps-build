@@ -9,5 +9,3 @@ dependencies:
   - role: sansible.java
     java:
       version: "{{ hippo_authoring.java.version }}"
-
-  - role: sansible.nginx

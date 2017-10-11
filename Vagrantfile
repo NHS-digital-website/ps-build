@@ -22,7 +22,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |m_config|
 
 		# TODO: change me
 		config.vm.box = "ubuntu/xenial64"
-		config.vm.box_check_update = true
+		config.vm.box_check_update = false
 
 		config.ssh.forward_agent = true
 

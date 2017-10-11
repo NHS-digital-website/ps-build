@@ -1,0 +1,9 @@
+---
+
+- name: "Copy local Hippo .artefacts/hippo_delivery-{{ hippo_delivery.version }}.tgz"
+  become: yes
+  copy:
+    dest: "/tmp/hippo_delivery-{{ hippo_delivery.version }}.tgz"
+    group: "{{ hippo_delivery.user }}"
+    owner: "{{ hippo_delivery.user }}"
+    src: "{{ root_dir }}/../.artefacts/hippo_delivery-{{ hippo_delivery.version }}.tgz"

@@ -15,10 +15,14 @@ hippo_authoring:
     memory: 2048
     priv_ip: 192.168.50.10
     hosts:
-      - hippo-authoring.nhsd-ps.int
+      - hippo-authoring.int
+      - hippo-authoring.mysql.db.int
 
   # Ansible role specific
   domain: hippo-authoring.nhsd-ps.int
+
+  source:
+    type: local
 
 hippo_delivery:
   # Vagrant specific
@@ -27,7 +31,14 @@ hippo_delivery:
     memory: 2048
     priv_ip: 192.168.50.11
     hosts:
-      - hippo-delivery.nhsd-ps.int
+      - hippo-delivery.int
 
   # Ansible role specific
-  domain: hippo-delivery.nhsd-ps.int
+  domain: hippo-delivery.int
+
+  mysql:
+    # hippo_authoring Mysql
+    host: 192.168.50.10
+
+  source:
+    type: local

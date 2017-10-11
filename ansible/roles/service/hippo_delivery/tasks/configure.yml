@@ -1,8 +1,26 @@
 ---
 
-- include: configure/mysql.yml
+- name: Copy config
+  become: yes
+  template:
+    dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
+    group: "{{ hippo_delivery.user }}"
+    owner: "{{ hippo_delivery.user }}"
+    src: "{{ item }}.j2"
+    mode: u=rw
+  with_items:
+    - conf/context.xml
+    - conf/log4j.xml
+    - conf/repository.xml
+    - conf/tomcat-users.xml
 
-- include: configure/nginx.yml
+# Tomcat out of the box comes with ROOT application already deployed and running
+# hence the deletion of the "ROOT" folder before deploying "site" as ROOT.war.
+- name: Ensure ROOT folder is deleted
+  become: yes
+  file:
+    dest: "/home/{{ hippo_delivery.user }}/tomcat/webapps/ROOT"
+    state: absent
 
 - name: Ensure Hippo CMS is running
   become: yes
@@ -15,15 +33,3 @@
     delay: 10
     host: 127.0.0.1
     port: 8080
-
-- name: Ensure Nginx proxy is running
-  become: yes
-  service:
-    name: nginx
-    state: restarted
-
-- name: Wait for Nginx Proxy
-  wait_for:
-    delay: 1
-    host: 127.0.0.1
-    port: 80

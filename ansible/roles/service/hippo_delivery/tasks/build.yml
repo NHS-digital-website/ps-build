@@ -26,6 +26,14 @@
     remote_src: yes
     src: "/tmp/apache-tomcat-{{ hippo_delivery.tomcat.version }}.tar.gz"
 
+- name: Ensure Tomcat folder permissions
+  become: yes
+  file:
+    dest: "/home/{{ hippo_delivery.user }}/apache-tomcat-{{ hippo_delivery.tomcat.version }}"
+    group: "{{ hippo_delivery.user }}"
+    owner: "{{ hippo_delivery.user }}"
+    state: directory
+
 - name: Symlink Tomcat
   become: yes
   file:
@@ -61,20 +69,6 @@
     dest: "/home/{{ hippo_delivery.user }}/tomcat/conf/catalina.properties"
     line: shared.loader=${catalina.base}/shared/lib,${catalina.base}/shared/lib/*.jar
     regexp: "^shared.loader="
-    # line: shared.loader=${catalina.base}/shared/lib,/opt/tomcat-endorsed
-
-- name: Copy config
-  become: yes
-  template:
-    dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
-    group: "{{ hippo_delivery.user }}"
-    owner: "{{ hippo_delivery.user }}"
-    src: "{{ item }}.j2"
-    mode: u=rw
-  with_items:
-    - conf/context.xml
-    - conf/log4j.xml
-    - conf/repository.xml
 
 - name: Create tomcat/bin files
   become: yes
@@ -89,6 +83,15 @@
     - bin/shutdown_wrapper.sh
     - bin/startup_wrapper.sh
 
+- name: Create env file with Tomcat manager user creds
+  become: yes
+  template:
+    dest: "/home/{{ hippo_delivery.user }}/.hippo-manager-env"
+    group: "{{ hippo_delivery.user }}"
+    mode: u=rw,o=,g=
+    owner: "{{ hippo_delivery.user }}"
+    src: "hippo-manager-env.j2"
+
 - name: Create Systemd service
   become: yes
   template:
@@ -101,4 +104,30 @@
     enabled: no
     name: "{{ hippo_delivery.user }}"
 
-- include: deploy_vagrant.yml
+# Allow "hippo_delivery" user to operate hippo_delivery service
+- name: Create sudoers config
+  become: yes
+  template:
+    dest: /etc/sudoers.d/hippo_delivery
+    mode: u=rw,o=r,g=r
+    src: sudoers.d/hippo_delivery.j2
+
+##
+# Download and unpack Hippo CMS
+#
+- name: Get the source of the Hippo delivery (site)
+  include: "source_{{ hippo_delivery.source.type }}.yml"
+  when: hippo_delivery.source.type
+
+- name: Unarchive hippocms
+  become: yes
+  unarchive:
+    dest: "/home/{{ hippo_delivery.user }}/tomcat"
+    extra_opts:
+      - common
+      - shared
+      - webapps
+    group: "{{ hippo_delivery.user }}"
+    owner: "{{ hippo_delivery.user }}"
+    remote_src: yes
+    src: /tmp/hippo_delivery-{{ hippo_delivery.version }}.tgz
