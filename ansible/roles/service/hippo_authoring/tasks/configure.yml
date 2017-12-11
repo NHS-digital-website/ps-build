@@ -2,6 +2,18 @@
 
 - include: configure/mysql.yml
 
+- name: Ensure Tomcat config folders
+  become: yes
+  file:
+    dest: "/home/{{ hippo_authoring.user }}/tomcat/{{ item }}"
+    group: "{{ hippo_authoring.user }}"
+    owner: "{{ hippo_authoring.user }}"
+    state: directory
+  with_items:
+    - conf
+    - conf/query
+    - conf/query/lucene
+
 - name: Copy config
   become: yes
   template:
@@ -13,7 +25,9 @@
   with_items:
     - conf/context.xml
     - conf/log4j.xml
+    - conf/query/lucene/indexing_configuration.xml
     - conf/repository.xml
+    - conf/server.xml
     - conf/tomcat-users.xml
 
 # Tomcat out of the box comes with ROOT application already deployed and running

@@ -46,13 +46,17 @@
 - name: Download Hippocms dependencies jars
   become: yes
   get_url:
-    url: "{{ item }}"
-    dest: "/home/{{ hippo_delivery.user }}/tomcat-endorsed/"
+    url: "{{ item.url }}"
+    dest: "/home/{{ hippo_delivery.user }}/tomcat-endorsed/{{ item.dest }}"
   with_items:
-    - http://search.maven.org/remotecontent?filepath=javax/jcr/jcr/2.0/jcr-2.0.jar
-    - http://search.maven.org/remotecontent?filepath=javax/mail/mail/1.4.7/mail-1.4.7.jar
-    - http://search.maven.org/remotecontent?filepath=mysql/mysql-connector-java/5.1.36/mysql-connector-java-5.1.36.jar
-    - http://search.maven.org/remotecontent?filepath=org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.1/geronimo-jta_1.1_spec-1.1.jar
+    - url: http://search.maven.org/remotecontent?filepath=javax/jcr/jcr/2.0/jcr-2.0.jar
+      dest: jcr-2.0.jar
+    - url: http://search.maven.org/remotecontent?filepath=javax/mail/mail/1.4.7/mail-1.4.7.jar
+      dest: mail-1.4.7.jar
+    - url: http://search.maven.org/remotecontent?filepath=mysql/mysql-connector-java/5.1.36/mysql-connector-java-5.1.36.jar
+      dest: mysql-connector-java-5.1.36.jar
+    - url: http://search.maven.org/remotecontent?filepath=org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.1/geronimo-jta_1.1_spec-1.1.jar
+      dest: geronimo-jta_1.1_spec-1.1.jar
 
 - name: Allow acess to RMI
   become: yes

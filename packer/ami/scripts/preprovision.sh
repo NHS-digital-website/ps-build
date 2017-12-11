@@ -2,10 +2,17 @@
 set -euo pipefail
 
 function main {
+	sudo rm -f /etc/cron.daily/apt-compat
+
 	while [ ! -f /var/lib/cloud/instance/boot-finished ];
 		do echo 'Waiting for cloud-init...';
 		sleep 1;
 	done
+
+	sudo systemctl stop apt-daily.timer
+	sudo systemctl disable apt-daily.timer
+	sudo systemctl mask apt-daily.service
+	sudo systemctl daemon-reload
 
 	# Need to ensure python is installed so Ansible can run
 	sudo apt-get update

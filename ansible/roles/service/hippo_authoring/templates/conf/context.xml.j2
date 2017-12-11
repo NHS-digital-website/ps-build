@@ -17,7 +17,8 @@
 		testWhileIdle="true" testOnBorrow="false" validationQuery="SELECT 1"
 		timeBetweenEvictionRunsMillis="10000"
 		minEvictableIdleTimeMillis="60000"
-		username="{{ hippo_authoring.mysql.user }}" password="{{ hippo_authoring.mysql.password }}"
+		username="{{ hippo_authoring.mysql.user }}"
+		password="{{ hippo_authoring.mysql.password }}"
 		driverClassName="com.mysql.jdbc.Driver"
 		url="jdbc:mysql://{{ hippo_authoring.mysql.host }}:3306/hippocms?characterEncoding=utf8"
 	/>

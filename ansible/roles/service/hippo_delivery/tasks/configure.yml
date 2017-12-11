@@ -1,5 +1,17 @@
 ---
 
+- name: Ensure Tomcat config folders
+  become: yes
+  file:
+    dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
+    group: "{{ hippo_delivery.user }}"
+    owner: "{{ hippo_delivery.user }}"
+    state: directory
+  with_items:
+    - conf
+    - conf/query
+    - conf/query/lucene
+
 - name: Copy config
   become: yes
   template:
@@ -12,6 +24,7 @@
     - conf/context.xml
     - conf/log4j.xml
     - conf/repository.xml
+    - conf/query/lucene/indexing_configuration.xml
     - conf/tomcat-users.xml
 
 # Tomcat out of the box comes with ROOT application already deployed and running
