@@ -74,19 +74,6 @@
     line: shared.loader=${catalina.base}/shared/lib,${catalina.base}/shared/lib/*.jar
     regexp: "^shared.loader="
 
-- name: Create tomcat/bin files
-  become: yes
-  template:
-    dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
-    group: "{{ hippo_delivery.user }}"
-    mode: u=rwx
-    owner: "{{ hippo_delivery.user }}"
-    src: "{{ item }}.j2"
-  with_items:
-    - bin/setenv.sh
-    - bin/shutdown_wrapper.sh
-    - bin/startup_wrapper.sh
-
 - name: Create env file with Tomcat manager user creds
   become: yes
   template:

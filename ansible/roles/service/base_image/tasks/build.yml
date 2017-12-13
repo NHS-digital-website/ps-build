@@ -33,6 +33,12 @@
     line: "APT::Periodic::Unattended-Upgrade \"0\";"
     regexp: ^APT::Periodic::Unattended-Upgrade
 
+- name: Remove Automatic Updates
+  become: yes
+  apt:
+    name: update-manager
+    state: absent
+
 - name: Clean apt
   become: yes
   apt:
@@ -44,16 +50,14 @@
   become: yes
   command: "{{ item }}"
   with_items:
-    - systemctl disable apt-daily.service # disable run when system boot
-    - systemctl disable apt-daily.timer   # disable timer run
+    - systemctl stop apt-daily.timer
+    - systemctl disable apt-daily.timer
+    - systemctl stop apt-daily.service
+    - systemctl disable apt-daily.service
+    - systemctl daemon-reload
+    - rm -f /etc/cron.daily/apt-compat
   tags:
     - skip_ansible_lint
-
-- name: Remove Automatic Updates
-  become: yes
-  apt:
-    name: update-manager
-    state: absent
 
 - name: Ensure ssh timeout
   become: yes
@@ -66,3 +70,10 @@
       line: ClientAliveInterval 900
     - regexp: ^ClientAliveCountMax
       line: ClientAliveCountMax 0
+
+- name: Empty apt.systemd.daily script
+  become: yes
+  copy:
+    src: apt.daily
+    dest: /usr/lib/apt/apt.systemd.daily
+    mode: u=xrw,g=rw,o=r

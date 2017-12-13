@@ -27,6 +27,19 @@
     - conf/query/lucene/indexing_configuration.xml
     - conf/tomcat-users.xml
 
+- name: Create tomcat/bin files
+  become: yes
+  template:
+    dest: "/home/{{ hippo_delivery.user }}/tomcat/{{ item }}"
+    group: "{{ hippo_delivery.user }}"
+    mode: u=rwx
+    owner: "{{ hippo_delivery.user }}"
+    src: "{{ item }}.j2"
+  with_items:
+    - bin/setenv.sh
+    - bin/shutdown_wrapper.sh
+    - bin/startup_wrapper.sh
+
 # Tomcat out of the box comes with ROOT application already deployed and running
 # hence the deletion of the "ROOT" folder before deploying "site" as ROOT.war.
 - name: Ensure ROOT folder is deleted

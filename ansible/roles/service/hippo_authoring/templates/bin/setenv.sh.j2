@@ -7,8 +7,8 @@ CATALINA_PID="${CATALINA_BASE}/work/catalina.pid"
 
 CLUSTER_ID="$(whoami)-$(hostname -f)"
 
-MAX_HEAP=512
-MIN_HEAP=256
+MAX_HEAP={{ (ansible_memtotal_mb * 0.80) | int }}
+MIN_HEAP={{ (ansible_memtotal_mb * 0.25) | int }}
 
 REP_OPTS="-Drepo.bootstrap=full -Drepo.config=file:${CATALINA_BASE}/conf/repository.xml"
 JVM_OPTS="-server -Xmx${MAX_HEAP}m -Xms${MIN_HEAP}m -XX:+UseG1GC -Djava.util.Arrays.useLegacyMergeSort=true"

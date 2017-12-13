@@ -4,3 +4,4 @@ base_image:
   sysstat_enabled: "false"
   groups: [ ]
   users: [ ]
+  sudoers: [ ]
