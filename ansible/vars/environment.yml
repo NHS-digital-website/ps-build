@@ -24,6 +24,16 @@ base_image:
         - power_users
         - users
       ssh_key: "{{ root_dir }}/files/ssh_keys/wojtek.oledzki.pub"
+  sudoers:
+    - name: admins
+      user: "%admins"
+      runas: "ALL=(ALL)"
+      commands: "NOPASSWD: ALL"
+    # power users have the same right as admins for now.
+    - name: power_users
+      user: "%power_users"
+      runas: "ALL=(ALL)"
+      commands: "NOPASSWD: ALL"
 
 hippo_authoring:
   source:

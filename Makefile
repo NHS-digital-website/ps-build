@@ -210,6 +210,17 @@ box: .artefacts/ubuntu-16.04.3-server-amd64.iso $(VENV) vendor/packer ansible/ro
 		-var 'root_dir=$(PWD)/ansible' \
 		"packer/vagrant.json"
 
+##
+# usage: make build-deploy V=v1.1.5
+build-deploy:
+	o=$$(head -n2 .artefacts/hippo_delivery.yml; echo "  version: $(V)"); echo "$$o" > .artefacts/hippo_delivery.yml
+	o=$$(head -n2 .artefacts/hippo_authoring.yml; echo "  version: $(V)"); echo "$$o" > .artefacts/hippo_authoring.yml
+	unset VERSION_ROLE && make ami.artefacts ami ROLE=hippo_authoring
+	unset VERSION_ROLE && make ami.artefacts ami ROLE=hippo_delivery
+	cp .artefacts/hippo_*.yml ../ps-deploy/.artefacts/
+	cd ../ps-deploy && make stack ROLE=hippo_authoring
+	cd ../ps-deploy && make stack ROLE=hippo_delivery
+
 ## Create new version tag based on the nearest tag
 version.bumpup:
 	@git tag $$((git describe --abbrev=0 --tags | grep $$(cat .version) || echo $$(cat .version).-1) | perl -pe 's/^(v(\d+\.)*)(-?\d+)(.*)$$/$$1.($$3+1).$$4/e')

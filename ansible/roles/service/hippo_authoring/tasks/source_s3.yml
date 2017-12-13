@@ -1,4 +1,8 @@
 ---
+- name: install AWS CLI
+  become: yes
+  apt:
+    name: awscli
 
 - name: Download hippocms from S3
   command: "aws s3 cp

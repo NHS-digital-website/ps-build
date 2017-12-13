@@ -7,3 +7,4 @@ dependencies:
     users_and_groups:
       groups: "{{ base_image.groups }}"
       users: "{{ base_image.users }}"
+      sudoers: "{{ base_image.sudoers }}"

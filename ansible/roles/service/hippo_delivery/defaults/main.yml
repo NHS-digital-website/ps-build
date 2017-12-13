@@ -27,4 +27,4 @@ hippo_delivery:
     type: ~
 
   tomcat:
-    version: "8.0.47"
+    version: "8.0.48"

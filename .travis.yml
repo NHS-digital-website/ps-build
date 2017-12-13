@@ -2,9 +2,8 @@
 
 group: stable
 dist: trusty
-
 language: python
-python: "2.7"
+python: '2.7'
 
 branches:
   only:
@@ -16,3 +15,9 @@ install:
 
 script:
   - make lint
+notifications:
+  slack:
+    rooms:
+      secure: LiIEKXMQZkuoEuONpVO1jtbXnw682CGyvPYqqPNwxmOfWqp2etmn3hnDumVT5Tb8hzh2tsZRzMncwyUhBfw1uASdCYHc2iHZTf8DXrhN5xOtkyTCX6DY8TNzFRL5hLZurWr9GJ8TFDwEnuqyAM1Svp5Z2zoIeSi1Sw7NhV5Ri9B98p3eiwdhITFjF2/ZBiU7ZEpukK7KI8VKY3Cr9SW2yJV3HJ6q1kcU/Rkf99NQJHeYLOA2YJ5J6AuGBwGh03gjKhPj6TG7M04AqJG94A7DdgPjxwrUOO3W1VNvifFE/NujNAkNDVI2+LJqZbo5y5TbrIFYzmOcibPW7t40UPOS9CnQLLBAKrwPuB8v+gzx4OFyZwPVfo2eYC+lXH3rrIPcN5XP5wPK0U0KiQRq+21FzhU4U545B0lTbUcjAQu1h6DLK5VoUntnLIqKAYrYFL07TrntByMB5pko2XQKm3BNuBa2SQX/afCivTGKI6bgPBcC2IIIZ5i0lIxhiP/Iyg7dnx+9+K8+ZkxoR08+rKlJwa8iYpEKEVHmpsOr8u8DUgk+67xghy35pf+ZwKo16VBQWCGEoF/4IVLwBnZEzadL9Lj08suZbhnBU3mGt6GEGRpoquetLrLNtOWDcy1NP32mGJ0sPhx62e/mD8zqqzt20r/hd4ZLrULvCTh9BYFRxJI=
+    on_success: always
+    on_failure: always

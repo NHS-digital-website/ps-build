@@ -3,6 +3,7 @@
 
 - name: Bootstrap
   hosts: localhost
+  gather_facts: yes
 
   roles:
     - role: "{{ role }}"
