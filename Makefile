@@ -288,7 +288,7 @@ ansible/roles/vendor: $(VENV) .phony
 # Downloads Hippo distribution tgz
 .artefacts/$(ROLE)-%.tgz:
 	aws s3 cp \
-		s3://artefacts.ps.digital.nhs.uk/$(ROLE)/$(patsubst .artefacts/$(ROLE)-%.tgz,%,$@)/publication-system.tgz \
+		s3://artefacts.ps.digital.nhs.uk/$(ROLE)/$(patsubst .artefacts/$(ROLE)-%.tgz,%,$@)/website.tgz \
 		$@
 
 .log:
