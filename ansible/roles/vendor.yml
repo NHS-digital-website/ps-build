@@ -4,19 +4,19 @@
   version: v1.0
 
 - role: sansible.java
-  version: v1.0
+  version: v1.0.5
 
 - role: sansible.mysql
-  version: v1.0
+  version: v1.0.3
 
 - role: sansible.nginx
-  version: v1.1
+  version: v1.1.1
 
 - role: sansible.ntp
-  verison: v1.0
+  version: v1.0.3
 
 - role: sansible.security_hardening
-  version: v1.0
+  version: v1.0.2
 
 - role: sansible.users_and_groups
-  version: v1.4
+  version: v1.4.1

@@ -4,6 +4,7 @@ group: stable
 dist: trusty
 language: python
 python: '2.7'
+cache: pip
 
 branches:
   only:
@@ -12,6 +13,8 @@ branches:
 
 install:
   - sudo apt-get install shellcheck
+  - make -B .venv
+  - make ansible/roles/vendor
 
 script:
   - make lint

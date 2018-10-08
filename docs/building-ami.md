@@ -28,15 +28,25 @@ region = eu-west-1
 in `~/.aws/credentials`
 
 ```
-[profile nhsd-website-nonprod]
+[nhsd-website-nonprod]
 aws_access_key_id = ABCAJBCFVV63UJ9X8Y7Z
 aws_secret_access_key = aDghW512HJ...
 mfa_serial = arn:aws:iam::ACCOUNT-ID:mfa/firstname.lastname
 
-[profile nhsd-website-prod]
+[nhsd-website-prod]
 aws_access_key_id = V6BCF3UABCAJVJ9X8Y7Z
 aws_secret_access_key = hjQgau3yAHY5...
 mfa_serial = arn:aws:iam::ACCOUNT-ID:mfa/firstname.lastname
+```
+
+This can be verified using command `.venv/bin/aws configure list --profile nhsd-website-nonprod` output of which should look e.g. as follows:
+
+```
+      Name                    Value             Type    Location
+   profile     nhsd-website-nonprod           manual    --profile
+access_key     ****************ABCD shared-credentials-file    
+secret_key     ****************WXYZ shared-credentials-file    
+    region             eu-west-1      config-file    ~/.aws/config
 ```
 
 Now, to test your profile you can:

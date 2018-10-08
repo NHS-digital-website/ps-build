@@ -252,15 +252,19 @@ clean:
 	rm -rf $(VENV)
 	find . -name "*.retry" | xargs rm
 
+# shortcurt
+.venv: $(VENV)
+
+# setup Virtualenv
 $(VENV):
 	@which virtualenv > /dev/null || (\
 		echo "please install virtualenv: http://docs.python-guide.org/en/latest/dev/virtualenvs/" \
 		&& exit 1 \
 	)
 	virtualenv $(VENV)
-	.venv/bin/pip install -U "pip<9.0"
-	.venv/bin/pip install pyopenssl urllib3[secure] requests[security]
 	.venv/bin/pip install -r ansible/requirements.txt --ignore-installed
+	# This ensures that on python < 2.7.9 we can accept SNI https connections
+	.venv/bin/pip install -U urllib3[secure]
 	virtualenv --relocatable $(VENV)
 
 ansible/roles/vendor: $(VENV) .phony
